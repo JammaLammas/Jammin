@@ -42,7 +42,7 @@ public class Utils {
      * @return 0 for top, 1 for bottom, 2 for left, 3 for right, -1 if not intersecting
      */
     public static int getIntersectsSide(Renderable R1, Renderable R2) {
-        final int m = 30; //TODO test values
+        final int m = 1; //TODO test values
         int res = 0;
         //x-direction
         if (R1.getX() + m > R2.getX() + R2.getWidth()) {

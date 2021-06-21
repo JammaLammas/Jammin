@@ -300,7 +300,8 @@ public class Main {
     }
 
     private static void runGameLogic() {
-        cameraX++;
+        //TODO put a good camera in
+        cameraX = 300;
 
 
         player.setyVelocity(player.getyVelocity() - 0.981);
@@ -327,12 +328,12 @@ public class Main {
                 }
                 if ((collide & Utils.LEFT) == Utils.LEFT) {
                     System.out.println("boopp");
-                    player.setX(p.getX() + p.getWidth());
+                    player.setX(p.getX() + player.getWidth());
                     player.setxVelocity(0);
                 }
                 if ((collide & Utils.RIGHT) == Utils.RIGHT) {
                     System.out.println("boop");
-                    player.setX(p.getX() - 1);
+                    player.setX(p.getX() + p.getWidth());
                     player.setxVelocity(0);
                 }
                 if (collide == 0) {
