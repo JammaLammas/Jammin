@@ -49,14 +49,15 @@ public class Utils {
         else if (R1.getLastX() < R2.getLastX() + R2.getWidth() && R1.getLastX() + R1.getWidth() > R2.getLastX()){ // if R2 vertically aligned with R2
             if (R1.getY() + R1.getHeight() / 2 > R2.getY() + R1.getHeight() / 2) {
                 // pushback = the bottom side of the player - the top side of the wall
-                System.out.println("pushing up " + R1.getY() + (R2.getY() + R2.getHeight() - R1.getY()));
-                R1.setY(R1.getY() + (R1.getY() + R1.getHeight() - R2.getY()));
+                System.out.println("pushback " + (R2.getHeight() - Math.abs((R2.getY() - R1.getY()))));
+                R1.setY(R1.getY() + R2.getHeight() - Math.abs((R2.getY() - R1.getY())));
                 R1.setOnGround(true);
             }
             else {
                 // pushback = the bottom side of the wall - the top side of the player
-                System.out.println("pushing down " + R1.getY() + (R2.getY() + R2.getHeight() - R1.getY()));
-                R1.setY(R1.getY() - (R2.getY() + R2.getHeight() - R1.getY()));
+                double pushback = R2.getY() + R2.getHeight() - R1.getY();
+                System.out.println("pushing down " + pushback);
+                R1.setY(R2.getY() - pushback);
             }
             R1.setyVelocity(0);
         }

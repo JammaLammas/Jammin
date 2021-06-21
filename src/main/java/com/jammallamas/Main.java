@@ -316,7 +316,6 @@ public class Main {
         for (Platform p : platforms) {
             count++;
             if (Utils.intersects(player, p)) {
-                System.out.println("platform " + count);
                 Utils.resolveCollision(player, p);
             }
         }
