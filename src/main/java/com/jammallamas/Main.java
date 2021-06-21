@@ -314,11 +314,8 @@ public class Main {
         }
         //player.setX(player.getX() + SPEED * walking);
         player.setOnGround(false);
-        int count = 0;
         for (Platform p : platforms) {
-            count++;
             if (Utils.intersects(player, p)) {
-                System.out.println("platform " + count);
                 Utils.resolveCollision(player, p);
             }
         }
