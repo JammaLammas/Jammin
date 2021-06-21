@@ -6,6 +6,7 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.IntBuffer;
+import java.util.ArrayList;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -82,24 +83,64 @@ public class Main {
         glfwShowWindow(window);
     }
 
+    public static ArrayList<Entity> entities = new ArrayList<>();
+    public static ArrayList<Platform> platforms = new ArrayList<>();
+    public static Player player;
+
     private static void loop() {
         GL.createCapabilities();
 
         // Set the clear color
-        glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+        glClearColor(0.0f, 1.0f, 1.0f, 0.0f);
+        Player p = new Player();
+        p.setX(20);
+        p.setY(-10);
+        p.setWidth(30);
+        p.setHeight(60);
+        entities.add(p);
+        player = p;
+
+        Platform plat = new Platform();
+        plat.setX(0);
+        plat.setY(-600);
+        plat.setWidth(600);
+        plat.setHeight(20);
+        platforms.add(plat);
+
+        glScalef(1, 1, 1);
+        glTranslated(-1, 1, 0);
 
         // Run the rendering loop until the user has attempted to close
         // the window or has pressed the ESCAPE key.
         while (!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
 
-            //TODO make a game or something
+            glPushMatrix();
+            glScaled(1 / 300d, 1 / 300d, 1);
+            for (Platform pl : platforms) {
+                pl.render();
+            }
+            for (Entity e : entities) {
+                e.render();
+            }
+            glPopMatrix();
 
             glfwSwapBuffers(window); // swap the color buffers
 
             // Poll for window events. The key callback above will only be
             // invoked during this call.
             glfwPollEvents();
+            runGameLogic();
+        }
+    }
+
+    private static void runGameLogic() {
+        player.setY(player.getY() - 9.81);
+        for (Platform p : platforms) {
+            if (Utils.intersects(player, p)) {
+                player.setY(p.getY() + p.getHeight());
+
+            }
         }
     }
 
