@@ -311,7 +311,7 @@ public class Main {
             player.setxVelocity(SPEED * walking);
         }
         //player.setX(player.getX() + SPEED * walking);
-        boolean onGround = false;
+        player.setOnGround(false);
         int count = 0;
         for (Platform p : platforms) {
             count++;
@@ -320,7 +320,7 @@ public class Main {
                 Utils.resolveCollision(player, p);
             }
         }
-        player.setOnGround(onGround);
+        boolean onGround = player.isOnGround();
         final double groundFriction = 0.25;
         final double airFriction = 0.00;
         if (player.getxVelocity() > 0) {

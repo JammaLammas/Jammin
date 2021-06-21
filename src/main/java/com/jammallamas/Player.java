@@ -3,9 +3,6 @@ package com.jammallamas;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Player extends Entity {
-    private boolean onGround = false;
-    private double yVelocity = 0;
-    private double xVelocity = 0;
 
     @Override
     public void render() {
@@ -22,27 +19,4 @@ public class Player extends Entity {
         glPopMatrix();
     }
 
-    public boolean isOnGround() {
-        return onGround;
-    }
-
-    public void setOnGround(boolean onGround) {
-        this.onGround = onGround;
-    }
-
-    public double getyVelocity() {
-        return yVelocity;
-    }
-
-    public void setyVelocity(double yVelocity) {
-        this.yVelocity = yVelocity;
-    }
-
-    public double getxVelocity() {
-        return xVelocity;
-    }
-
-    public void setxVelocity(double xVelocity) {
-        this.xVelocity = xVelocity;
-    }
 }
