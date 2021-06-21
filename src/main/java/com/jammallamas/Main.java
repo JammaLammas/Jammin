@@ -47,6 +47,10 @@ public class Main {
     public static ArrayList<Platform> platforms = new ArrayList<>();
     public static Player player;
 
+    private static final int DOUBLE_TAP_DELAY = 500;
+    private static long lastPressed = 0;
+    private static long lastPressedL = 0;
+
     private static void init() {
         // Setup an error callback. The default implementation
         // will print the error message in System.err.
@@ -71,16 +75,35 @@ public class Main {
             if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
                 glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
             if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-                walking = (byte) (walking == -1 ? 0 : 1);
+
+                if (lastPressed + DOUBLE_TAP_DELAY >= System.currentTimeMillis()) {
+                    player.setxVelocity(SPEED * 10);
+                    walking = 0;
+                } else {
+                    walking = (byte) (walking == -1 ? 0 : 1);
+                }
+                lastPressed = System.currentTimeMillis();
             }
             if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
-                walking = (byte) (walking == 0 ? -1 : 0);
+                walking = 0;
             }
             if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-                walking = (byte) (walking == 1 ? 0 : -1);
+                if (lastPressedL + DOUBLE_TAP_DELAY >= System.currentTimeMillis()) {
+                    player.setxVelocity(SPEED * -10);
+                    walking = 0;
+                } else {
+                    walking = (byte) (walking == -1 ? 0 : -1);
+                }
+                lastPressedL = System.currentTimeMillis();
             }
             if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
-                walking = (byte) (walking == 0 ? 1 : 0);
+                walking = 0;
+            }
+            if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
+                if (!player.isOnGround()) {
+                    player.setyVelocity(player.getyVelocity() + 2);
+                    player.setxVelocity(8);
+                }
             }
             if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
                 if (player.isOnGround()) {
@@ -246,11 +269,15 @@ public class Main {
     }
 
     private static void runGameLogic() {
-        cameraX++;
+        //cameraX++;
 
         player.setyVelocity(player.getyVelocity() - 0.981);
         player.setY(player.getY() + player.getyVelocity());
-        player.setX(player.getX() + SPEED * walking);
+        player.setX(player.getX() + player.getxVelocity());
+        if (walking != 0 && player.isOnGround()) {
+            player.setxVelocity(SPEED * walking);
+        }
+        //player.setX(player.getX() + SPEED * walking);
         boolean onGround = false;
         for (Platform p : platforms) {
             if (Utils.intersects(player, p)) {
@@ -260,6 +287,20 @@ public class Main {
             }
         }
         player.setOnGround(onGround);
+        final double groundFriction = 0.25;
+        final double airFriction = 0.00;
+        if (player.getxVelocity() > 0) {
+            player.setxVelocity(player.getxVelocity() - player.getxVelocity() * (onGround ? groundFriction : airFriction));
+            if (player.getxVelocity() < 0) {
+                player.setxVelocity(0);
+            }
+        } else if (player.getxVelocity() < 0) {
+            player.setxVelocity(player.getxVelocity() + -player.getxVelocity() * (onGround ? groundFriction : airFriction));
+            if (player.getxVelocity() > 0) {
+                player.setxVelocity(0);
+            }
+        }
+
     }
 
 }
