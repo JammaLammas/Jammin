@@ -23,47 +23,41 @@ public class Utils {
         return (rw < rx || rw > tx) && (rh < ry || rh > ty) && (tw < tx || tw > rx) && (th < ty || th > ry);
     }
 
+
+    /**
+     * IntersectSide
+     */
+    public static final int
+            TOP = 0b0001,
+            BOTTOM = 0b0010,
+            LEFT = 0b0100,
+            RIGHT = 0b1000;
+
     /**
      * Gets where it intersects
      * only compute when the first intersects is true
      *
-     * @param player the "player" renderable (or entity)
-     * @param tile   the tile renderable
+     * @param R1 the "player" renderable (or entity)
+     * @param R2 the tile renderable
      * @return 0 for top, 1 for bottom, 2 for left, 3 for right, -1 if not intersecting
      */
-    public static int getIntersectsSide(Renderable player, Renderable tile) {
-        double height = Math.abs(player.getHeight());
-        double y = Math.abs(player.getY());
-        double y1 = Math.abs(tile.getY());
-        double x1 = Math.abs(tile.getX());
-        double width1 = Math.abs(tile.getWidth());
-        double height1 = Math.abs(tile.getHeight());
-        double x = Math.abs(player.getX());
-        double width = Math.abs(player.getWidth());
+    public static int getIntersectsSide(Renderable R1, Renderable R2) {
+        final int m = 30; //TODO test values
+        int res = 0;
+        //x-direction
+        if (R1.getX() + m > R2.getX() + R2.getWidth()) {
+            res |= LEFT;
+        } else if (R1.getX() + R1.getWidth() - m < R2.getX()) {
+            res |= RIGHT;
+        }
 
-        double tile_top = y1 + height1;
-        double player_right = x + width;
-        double tile_right = x1 + width1;
-        double player_top = y + height;
-
-        double b_collision = y1 - player_top; //bottom_t top diff
-        double t_collision = y - tile_top; //bottom_p top diff
-
-        double l_collision = player_right - x1;
-        double r_collision = tile_right - x;
-        if (t_collision < b_collision && t_collision < l_collision && t_collision < r_collision) {
-            return 0;
+        //y-direction
+        if (R1.getY() + m > R2.getY() + R2.getHeight()) {
+            res |= TOP;
+        } else if (R1.getY() + R1.getHeight() - m < R2.getY()) {
+            res |= BOTTOM;
         }
-        if (b_collision < t_collision && b_collision < l_collision && b_collision < r_collision) {
-            return 1;
-        }
-        if (l_collision < r_collision && l_collision < t_collision && l_collision < b_collision) {
-            return 2;
-        }
-        if (r_collision < l_collision && r_collision < t_collision && r_collision < b_collision) {
-            return 3;
-        }
-        return -1;
+        return res;
     }
 
     public static String loadResource(String fileName) {

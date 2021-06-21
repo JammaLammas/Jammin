@@ -300,7 +300,7 @@ public class Main {
     }
 
     private static void runGameLogic() {
-        //cameraX++;
+        cameraX++;
 
 
         player.setyVelocity(player.getyVelocity() - 0.981);
@@ -314,24 +314,28 @@ public class Main {
         for (Platform p : platforms) {
             if (Utils.intersects(player, p)) {
                 int collide = Utils.getIntersectsSide(player, p);
-                if (collide == 0) {
+                if ((collide & Utils.TOP) == Utils.TOP) {
                     //top
-                    System.out.println("top");
                     onGround = true;
                     player.setY(p.getY() + p.getHeight());
                     player.setyVelocity(0);
-                } else if (collide == 1) {
+                }
+                if ((collide & Utils.BOTTOM) == Utils.BOTTOM) {
                     //bottom
-                    //System.out.println("bottom");
                     player.setY(p.getY());
                     player.setyVelocity(0);
-                } else if (collide == 2) {
-                    player.setX(p.getX());
-                    player.setxVelocity(0);
-                } else if (collide == 3) {
+                }
+                if ((collide & Utils.LEFT) == Utils.LEFT) {
+                    System.out.println("boopp");
                     player.setX(p.getX() + p.getWidth());
                     player.setxVelocity(0);
-                } else {
+                }
+                if ((collide & Utils.RIGHT) == Utils.RIGHT) {
+                    System.out.println("boop");
+                    player.setX(p.getX() - 1);
+                    player.setxVelocity(0);
+                }
+                if (collide == 0) {
                     //what ??? player has collided from nowhere ???? oh no oh no !!!!!
                     System.err.println("collision");
                     player.setX(p.getX());
