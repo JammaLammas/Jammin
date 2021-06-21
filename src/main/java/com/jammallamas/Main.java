@@ -244,6 +244,8 @@ public class Main {
                 try {
                     p.setX(Double.parseDouble(coords[0]));
                     p.setY(Double.parseDouble(coords[1]));
+                    p.setX(Double.parseDouble(coords[0]));
+                    p.setY(Double.parseDouble(coords[1])); // duplicated because lastx and lasty
                     p.setHeight(Double.parseDouble(coords[2]));
                     p.setWidth(Double.parseDouble(coords[3]));
                     platforms.add(p);
@@ -316,6 +318,7 @@ public class Main {
         for (Platform p : platforms) {
             count++;
             if (Utils.intersects(player, p)) {
+                System.out.println("platform " + count);
                 Utils.resolveCollision(player, p);
             }
         }
