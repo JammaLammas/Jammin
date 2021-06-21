@@ -2,54 +2,115 @@ package com.jammallamas;
 
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.openal.*;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.libc.LibCStdlib;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 import java.util.ArrayList;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.openal.AL10.*;
+import static org.lwjgl.openal.ALC10.alcOpenDevice;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.stb.STBVorbis.stb_vorbis_decode_filename;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Main {
 
-    private static long window;
-
     private final static double SPEED = 5;
+    private static final int DOUBLE_TAP_DELAY = 500;
     public static int cameraX = 0;
     public static int cameraY = 0;
     public static byte walking = 0;
+    public static ArrayList<Entity> entities = new ArrayList<>();
+    public static ArrayList<Platform> platforms = new ArrayList<>();
+    public static Player player;
+    private static long window;
     private static int windowWidth;
     private static int windowHeight;
     private static boolean resized;
+    private static long device;
+    private static long context;
+    private static long lastPressed = 0;
+    private static long lastPressedL = 0;
 
     public static void main(String[] args) {
         try {
             init();
             loop();
         } finally {
+            ALC10.alcDestroyContext(context);
+            ALC10.alcCloseDevice(device);
+
             glfwFreeCallbacks(window);
             glfwDestroyWindow(window);
 
             // Terminate GLFW and free the error callback
             glfwTerminate();
             glfwSetErrorCallback(null).free();
+            System.exit(0); //close everything else i forgot
         }
     }
 
-    public static ArrayList<Entity> entities = new ArrayList<>();
-    public static ArrayList<Platform> platforms = new ArrayList<>();
-    public static Player player;
+    private static void playMusic(String filename) {
+        int sampleRate;
+        int channels;
+        ShortBuffer rawAudioBuffer;
+        try (MemoryStack stack = stackPush()) {
+            IntBuffer channelsBuffer = stack.mallocInt(1);
+            IntBuffer sampleRateBuffer = stack.mallocInt(1);
+            rawAudioBuffer = stb_vorbis_decode_filename(filename, channelsBuffer, sampleRateBuffer);
+            channels = channelsBuffer.get();
+            sampleRate = sampleRateBuffer.get();
+        }
+        //Find the correct OpenAL format
+        int format = -1;
+        if (channels == 1) {
+            format = AL_FORMAT_MONO16;
+        } else if (channels == 2) {
+            format = AL_FORMAT_STEREO16;
+        }
 
-    private static final int DOUBLE_TAP_DELAY = 500;
-    private static long lastPressed = 0;
-    private static long lastPressedL = 0;
+        //Request space for the buffer
+        int bufferPointer = alGenBuffers();
+
+        double time = sampleRate + 0.0d / rawAudioBuffer.remaining();
+
+        //Send the data to OpenAL
+        alBufferData(bufferPointer, format, rawAudioBuffer, sampleRate);
+
+        //Free the memory allocated by STB
+        LibCStdlib.free(rawAudioBuffer);
+
+
+        //Request a source
+        int sourcePointer = alGenSources();
+
+        //Assign the sound we just loaded to the source
+        alSourcei(sourcePointer, AL_BUFFER, bufferPointer);
+
+        //Play the sound
+        alSourcePlay(sourcePointer);
+
+        new Thread(() -> {
+            try {
+                Thread.sleep((long) (time * 1000));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            //free up
+            alDeleteSources(sourcePointer);
+            alDeleteBuffers(bufferPointer);
+        }).start();
+    }
 
     private static void init() {
         // Setup an error callback. The default implementation
@@ -64,6 +125,14 @@ public class Main {
         glfwDefaultWindowHints(); // optional, the current window hints are already the default
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // the window will stay hidden after creation
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
+
+        String defaultDeviceName = ALC10.alcGetString(0, ALC10.ALC_DEFAULT_DEVICE_SPECIFIER);
+        device = alcOpenDevice(defaultDeviceName);
+        int[] attributes = {0};
+        context = ALC10.alcCreateContext(device, attributes);
+        ALC10.alcMakeContextCurrent(context);
+        ALCCapabilities alcCapabilities = ALC.createCapabilities(device);
+        ALCapabilities alCapabilities = AL.createCapabilities(alcCapabilities);
 
         // Create the window
         window = glfwCreateWindow(300, 300, "Hello Jammers!", NULL, NULL);
@@ -159,13 +228,6 @@ public class Main {
         entities.add(p);
         player = p;
 
-        Platform plat = new Platform();
-        plat.setX(0);
-        plat.setY(-600);
-        plat.setWidth(600);
-        plat.setHeight(20);
-        platforms.add(plat);
-
         loadLevel("/testLevel.lvl.gz");
 
 
@@ -178,6 +240,8 @@ public class Main {
             e.printStackTrace();
             texture = 0;
         }
+
+        playMusic("boop.ogg");
 
 
         // Run the rendering loop until the user has attempted to close
