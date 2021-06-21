@@ -312,38 +312,12 @@ public class Main {
         }
         //player.setX(player.getX() + SPEED * walking);
         boolean onGround = false;
+        int count = 0;
         for (Platform p : platforms) {
+            count++;
             if (Utils.intersects(player, p)) {
-                int collide = Utils.getIntersectsSide(player, p);
-                if ((collide & Utils.TOP) == Utils.TOP) {
-                    //top
-                    onGround = true;
-                    player.setY(p.getY() + p.getHeight());
-                    player.setyVelocity(0);
-                }
-                if ((collide & Utils.BOTTOM) == Utils.BOTTOM) {
-                    //bottom
-                    player.setY(p.getY());
-                    player.setyVelocity(0);
-                }
-                if ((collide & Utils.LEFT) == Utils.LEFT) {
-                    System.out.println("boopp");
-                    player.setX(p.getX() + player.getWidth());
-                    player.setxVelocity(0);
-                }
-                if ((collide & Utils.RIGHT) == Utils.RIGHT) {
-                    System.out.println("boop");
-                    player.setX(p.getX() + p.getWidth());
-                    player.setxVelocity(0);
-                }
-                if (collide == 0) {
-                    //what ??? player has collided from nowhere ???? oh no oh no !!!!!
-                    System.err.println("collision");
-                    player.setX(p.getX());
-                    player.setY(p.getY() + p.getHeight());
-                    player.setxVelocity(0);
-                    player.setyVelocity(0);
-                }
+                System.out.println("platform " + count);
+                Utils.resolveCollision(player, p);
             }
         }
         player.setOnGround(onGround);
