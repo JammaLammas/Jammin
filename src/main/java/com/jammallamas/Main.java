@@ -166,6 +166,8 @@ public class Main {
         plat.setHeight(20);
         platforms.add(plat);
 
+        loadLevel("/testLevel.lvl.gz");
+
 
         glTranslated(-1, 1, 0);
 
@@ -227,6 +229,35 @@ public class Main {
         }
     }
 
+    private static void loadLevel(String name) {
+        platforms.clear();
+        String data = Utils.loadGzResource(name);
+        String[] plats = data.split("\n");
+        for (String pl : plats) {
+            if (pl.startsWith("//")) {
+                continue;
+            }
+            String[] coords = pl.split(":");
+            //x:y:h:w
+            if (coords.length == 4) {
+                Platform p = new Platform();
+                try {
+                    p.setX(Double.parseDouble(coords[0]));
+                    p.setY(Double.parseDouble(coords[1]));
+                    p.setHeight(Double.parseDouble(coords[2]));
+                    p.setWidth(Double.parseDouble(coords[3]));
+                    platforms.add(p);
+                } catch (NumberFormatException e) {
+                    System.err.println("Bad number for line " + pl + "skipping");
+                }
+
+            } else {
+                //uh uh
+                System.err.println("this line " + pl + " is invalid ! skipping");
+            }
+        }
+    }
+
     private static int loadTexture(String fileName) throws Exception {
         int width;
         int height;
@@ -271,6 +302,7 @@ public class Main {
     private static void runGameLogic() {
         //cameraX++;
 
+
         player.setyVelocity(player.getyVelocity() - 0.981);
         player.setY(player.getY() + player.getyVelocity());
         player.setX(player.getX() + player.getxVelocity());
@@ -281,9 +313,32 @@ public class Main {
         boolean onGround = false;
         for (Platform p : platforms) {
             if (Utils.intersects(player, p)) {
-                onGround = true;
-                player.setY(p.getY() + p.getHeight());
-                player.setyVelocity(0);
+                int collide = Utils.getIntersectsSide(player, p);
+                if (collide == 0) {
+                    //top
+                    System.out.println("top");
+                    onGround = true;
+                    player.setY(p.getY() + p.getHeight());
+                    player.setyVelocity(0);
+                } else if (collide == 1) {
+                    //bottom
+                    //System.out.println("bottom");
+                    player.setY(p.getY());
+                    player.setyVelocity(0);
+                } else if (collide == 2) {
+                    player.setX(p.getX());
+                    player.setxVelocity(0);
+                } else if (collide == 3) {
+                    player.setX(p.getX() + p.getWidth());
+                    player.setxVelocity(0);
+                } else {
+                    //what ??? player has collided from nowhere ???? oh no oh no !!!!!
+                    System.err.println("collision");
+                    player.setX(p.getX());
+                    player.setY(p.getY() + p.getHeight());
+                    player.setxVelocity(0);
+                    player.setyVelocity(0);
+                }
             }
         }
         player.setOnGround(onGround);
