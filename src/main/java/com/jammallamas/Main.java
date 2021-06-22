@@ -29,8 +29,8 @@ public class Main {
     private static final double GROUND_FRICTION = 0.25;
     private static final double AIR_FRICTION = 0.00;
     private static final long GRAB_COOLDOWN = 200;
-    public static int cameraX = 0;
-    public static int cameraY = 0;
+    public static double cameraX = 0;
+    public static double cameraY = 400;
     public static ArrayList<Entity> entities = new ArrayList<>();
     public static ArrayList<Platform> platforms = new ArrayList<>();
     public static Player player1;
@@ -287,16 +287,16 @@ public class Main {
 
         // Player 1 init
         player1 = new Player();
-        player1.setX(60);
-        player1.setY(-10);
+        player1.setX(150);
+        player1.setY(0);
         player1.setWidth(30);
         player1.setHeight(60);
         entities.add(player1);
 
         // Player 2 init
         player2 = new Player();
-        player2.setX(100);
-        player2.setY(60);
+        player2.setX(190);
+        player2.setY(0);
         player2.setWidth(30);
         player2.setHeight(60);
         entities.add(player2);
@@ -450,9 +450,6 @@ public class Main {
     }
 
     private static void runGameLogic() {
-        //TODO put a good camera in
-        //cameraX = 300;
-
         // Entity movement
         for (Entity e : entities) {
             if (!(e instanceof Projectile)) {
@@ -555,7 +552,11 @@ public class Main {
                 }
             }
         }
-
+        // Camera following p1
+        //TODO put a good camera in
+        cameraX += (player1.getX() - player1.getLastX());
+        cameraY += ((player1.getY() - player1.getLastY()) - 0.981);
+        //cameraX = 300;
     }
 
 }
