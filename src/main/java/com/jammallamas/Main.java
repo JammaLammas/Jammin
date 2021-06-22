@@ -151,8 +151,8 @@ public class Main {
 			// D key: walk right if pressed, stop if released
             if (key == GLFW_KEY_D && action == GLFW_PRESS) {
 
-                if (lastPressed + DOUBLE_TAP_DELAY >= System.currentTimeMillis()) {
-                    player1.setxVelocity(player1.getSpeed() * 10);
+                if (player1.isOnGround() && lastPressed + DOUBLE_TAP_DELAY >= System.currentTimeMillis()) {
+                    player1.setxVelocity(player1.getSpeed() * 5);
                     player1.setWalking((byte) 0);
                 } else {
                     player1.setWalking((byte) (player1.getWalking() == -1 ? 0 : 1));
@@ -165,11 +165,11 @@ public class Main {
 
 			// A key: walk left if pressed, stop if released
             if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-                if (lastPressedL + DOUBLE_TAP_DELAY >= System.currentTimeMillis()) {
-                    player1.setxVelocity(player1.getSpeed() * -10);
+                if (player1.isOnGround() && lastPressedL + DOUBLE_TAP_DELAY >= System.currentTimeMillis()) {
+                    player1.setxVelocity(player1.getSpeed() * -5);
                     player1.setWalking((byte) 0);
                 } else {
-					player1.setWalking((byte) (player1.getWalking() == -1 ? 0 : -1));
+                    player1.setWalking((byte) (player1.getWalking() == -1 ? 0 : -1));
                 }
                 lastPressedL = System.currentTimeMillis();
             }
@@ -177,23 +177,23 @@ public class Main {
                 player1.setWalking((byte) 0);
             }
 
-			// W key: Jump
+            // W key: Jump
             if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
                 if (player1.isOnGround()) {
                     player1.setyVelocity(25);
                 }
             }
 
-			// S key: Dash, with a small jump.
+            // S key: Dash, with a small dive.
             if (key == GLFW_KEY_S && action == GLFW_PRESS) {
                 if (!player1.isOnGround()) {
-                    player1.setyVelocity(player1.getyVelocity() + 2);
-                    player1.setxVelocity(8);
+                    player1.setyVelocity(player1.getyVelocity() - 2);
+                    player1.setxVelocity(player1.getxVelocity() + 8 * player1.getWalking());
                 }
             }
 
-			// Player 2 shooting: Arrow Keys
-			// TODO
+            // Player 2 shooting: Arrow Keys
+            // TODO
         });
 
         glfwSetFramebufferSizeCallback(window, (window, width, height) -> {
@@ -239,7 +239,7 @@ public class Main {
 
 		// Player 1 init
         player1 = new Player();
-        player1.setX(20);
+        player1.setX(60);
         player1.setY(-10);
         player1.setWidth(30);
         player1.setHeight(60);
@@ -247,12 +247,12 @@ public class Main {
 
 		// Player 2 init
         player2 = new Player();
-        player2.setX(20);
+        player2.setX(100);
         player2.setY(60);
         player2.setWidth(30);
         player2.setHeight(60);
         entities.add(player2);
-        player1 = player2;
+        //player1 = player2;
 
 
         loadLevel("/testLevel.lvl.gz");
@@ -394,7 +394,7 @@ public class Main {
 
     private static void runGameLogic() {
         //TODO put a good camera in
-        cameraX = 300;
+        //cameraX = 300;
 
 		// Entity movement
 		for(Entity e: entities){
@@ -413,27 +413,39 @@ public class Main {
 				}
 			}
 		}
-		
-		// Entity-Platform collisions
-		for(Entity e: entities){
-			e.setOnGround(false);  // Default case, if onGround then will be set so below
-			for (Platform p : platforms) {
-				if (Utils.intersects(e, p)) {
-					Utils.resolveCollision(e, p);
-				}
-			}
-		}
 
-		// Entity-Entity colllisions
-		// TODO
+        // Entity-Platform collisions
+        for (Entity e : entities) {
+            e.setOnGround(false);  // Default case, if onGround then will be set so below
+            for (Platform p : platforms) {
+                if (Utils.intersects(e, p)) {
+                    Utils.resolveCollision(e, p);
+                }
+            }
+        }
 
-		// Friction
-		for(Entity e : entities) {
-			boolean onGround = e.isOnGround();
-			if (e.getxVelocity() > 0) {
-				e.setxVelocity(e.getxVelocity() - e.getxVelocity() * (onGround ? GROUND_FRICTION : AIR_FRICTION));
-				if (e.getxVelocity() < 0) {
-					e.setxVelocity(0);
+        for (int i = 0, entitiesSize = entities.size(); i < entitiesSize; i++) {
+            Entity e = entities.get(i);
+            for (int j = 0, size = entities.size(); j < size; j++) {
+                Entity other = entities.get(j);
+                if (i == j) {
+                    continue; // no self-collision
+                }
+                if (Utils.intersects(e, other)) {
+                    Utils.resolveCollision(e, other);
+                }
+            }
+        }
+        // Entity-Entity colllisions
+        // TODO
+
+        // Friction
+        for (Entity e : entities) {
+            boolean onGround = e.isOnGround();
+            if (e.getxVelocity() > 0) {
+                e.setxVelocity(e.getxVelocity() - e.getxVelocity() * (onGround ? GROUND_FRICTION : AIR_FRICTION));
+                if (e.getxVelocity() < 0) {
+                    e.setxVelocity(0);
 				}
 			} else if (e.getxVelocity() < 0) {
 				e.setxVelocity(e.getxVelocity() + -e.getxVelocity() * (onGround ? GROUND_FRICTION : AIR_FRICTION));

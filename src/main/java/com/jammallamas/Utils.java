@@ -37,11 +37,11 @@ public class Utils {
         if (R1.getLastY() + R1.getHeight() > R2.getLastY() && R2.getLastY() + R2.getHeight() > R1.getLastY()) { // if R1 horizontally aligned with R2
             if (R1.getX() + R1.getWidth() / 2 < R2.getX() + R1.getWidth() / 2) {
                 // pushback = the right side of the player - the left side of the wall
-                System.out.println("pushing left " + (R1.getWidth() - Math.abs(R1.getX() - R2.getX())));
+                // System.out.println("pushing left " + (R1.getWidth() - Math.abs(R1.getX() - R2.getX())));
                 R1.setX(R1.getX() - (R1.getWidth() - Math.abs(R1.getX() - R2.getX())));
             } else {
                 // pushback = the right side of the wall - the left side of the player
-                System.out.println("pushing right " + (R2.getWidth() - Math.abs(R1.getX() - R2.getX())));
+                // System.out.println("pushing right " + (R2.getWidth() - Math.abs(R1.getX() - R2.getX())));
                 R1.setX(R1.getX() + (R2.getWidth() - Math.abs(R1.getX() - R2.getX())));
             }
             R1.setxVelocity(0);
@@ -49,13 +49,13 @@ public class Utils {
         else if (R1.getLastX() + R1.getWidth() > R2.getX() && R2.getX() + R2.getWidth() > R1.getX()){ // if R2 vertically aligned with R2
             if (R1.getY() + R1.getHeight() / 2 > R2.getY() + R1.getHeight() / 2) {
                 // pushback = the bottom side of the player - the top side of the wall
-                System.out.println("pushing down " + (R2.getHeight() - Math.abs((R2.getY() - R1.getY()))));
+                // System.out.println("pushing down " + (R2.getHeight() - Math.abs((R2.getY() - R1.getY()))));
                 R1.setY(R1.getY() + R2.getHeight() - Math.abs((R2.getY() - R1.getY())));
                 R1.setOnGround(true);
             }
             else {
                 // pushback = the bottom side of the wall - the top side of the player
-                System.out.println("pushing up " + (R1.getHeight() - Math.abs((R2.getY() - R1.getY()))));
+                // System.out.println("pushing up " + (R1.getHeight() - Math.abs((R2.getY() - R1.getY()))));
                 R1.setY(R1.getY() - R1.getHeight() - Math.abs((R2.getY() - R1.getY())));
             }
             R1.setyVelocity(0);
