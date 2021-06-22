@@ -30,7 +30,7 @@ public class Main {
     private static final double AIR_FRICTION = 0.00;
     private static final long GRAB_COOLDOWN = 200;
     public static double cameraX = 0;
-    public static double cameraY = 400;
+    public static double cameraY = 800;
     public static ArrayList<Entity> entities = new ArrayList<>();
     public static ArrayList<Renderable> platforms = new ArrayList<>();
     public static Player player1;
@@ -340,11 +340,11 @@ public class Main {
             }
 
             glPushMatrix();
-            glScaled(1 / 300d, 1 / 300d, 1);
+            glScaled(1 / 600d, 1 / 600d, 1);
 
             //background
             glPushMatrix();
-            glTranslated(0, -600, 0);
+            glTranslated(0, -1200, 0);
             //glTranslated(Main.cameraX,Main.cameraY,0);
             glBindTexture(GL_TEXTURE_2D, texture);
             glBegin(GL_QUADS);
@@ -352,11 +352,11 @@ public class Main {
             glTexCoord2f(0, 1);
             glVertex2d(0, 0);
             glTexCoord2f(1, 1);
-            glVertex2d(0, 600);
+            glVertex2d(0, 1200);
             glTexCoord2f(0, 0);
-            glVertex2d(600, 600);
+            glVertex2d(1200, 1200);
             glTexCoord2f(1, 0);
-            glVertex2d(600, 0);
+            glVertex2d(1200, 0);
             glEnd();
             glPopMatrix();
             //
