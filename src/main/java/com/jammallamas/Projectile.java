@@ -20,9 +20,6 @@ public class Projectile extends Entity implements ActionOnTouch {
 
     public boolean onHit(Renderable r) {
         //hit a platform
-        if (r instanceof Button) {
-            ((Button) r).onHit(this);
-        }
         return true; //destroy self
     }
 

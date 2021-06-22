@@ -43,6 +43,7 @@ public class Main {
     private static long context;
     private static long lastPressed = 0;
     private static long lastPressedL = 0;
+    public static final ArrayList<Entity> forDeletion = new ArrayList<>();
 
     public static void main(String[] args) {
         try {
@@ -117,7 +118,115 @@ public class Main {
     }
 
     public static long grabTimeout = 0;
-    private static boolean isGrabbed = false;
+    public static boolean isGrabbed = false;
+    private static boolean reset = false;
+
+
+    private static void loop() {
+        GL.createCapabilities();
+        glEnable(GL_TEXTURE_2D);
+
+        // Set the clear color
+        glClearColor(0.0f, 1.0f, 1.0f, 0.0f);
+
+        // Player 1 init
+        player1 = new Player();
+        player1.setX(150);
+        player1.setY(0);
+        player1.setWidth(30);
+        player1.setHeight(60);
+        entities.add(player1);
+
+        // Player 2 init
+        player2 = new Player();
+        player2.setX(190);
+        player2.setY(0);
+        player2.setWidth(30);
+        player2.setHeight(30);
+        entities.add(player2);
+        //player1 = player2;
+
+
+        loadLevel("/testLevel.lvl.gz");
+
+
+        glTranslated(-1, 1, 0);
+
+        int texture;
+        try {
+            texture = loadTexture("Background.jpg");
+        } catch (Exception e) {
+            e.printStackTrace();
+            texture = 0;
+        }
+
+        int buttonTexture;
+        try {
+            buttonTexture = loadTexture("button.png");
+        } catch (Exception e) {
+            e.printStackTrace();
+            buttonTexture = 0;
+        }
+
+        playMusic("boop.ogg");
+
+
+        // Run the rendering loop until the user has attempted to close
+        // the window or has pressed the ESCAPE key.
+        while (!glfwWindowShouldClose(window)) {
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
+
+            if (resized) {
+                glViewport(0, 0, windowWidth, windowHeight);
+                resized = false;
+            }
+
+            glPushMatrix();
+            glScaled(1 / 600d, 1 / 600d, 1);
+
+            //background
+            glPushMatrix();
+            glTranslated(0, -1200, 0);
+            //glTranslated(Main.cameraX,Main.cameraY,0);
+            glBindTexture(GL_TEXTURE_2D, texture);
+            glBegin(GL_QUADS);
+            glColor4f(1, 1, 1, 1);
+            glTexCoord2f(0, 1);
+            glVertex2d(0, 0);
+            glTexCoord2f(1, 1);
+            glVertex2d(0, 1200);
+            glTexCoord2f(0, 0);
+            glVertex2d(1200, 1200);
+            glTexCoord2f(1, 0);
+            glVertex2d(1200, 0);
+            glEnd();
+            glPopMatrix();
+            //
+            for (Renderable pl : platforms) {
+                if (pl instanceof Button) {
+                    glBindTexture(GL_TEXTURE_2D, buttonTexture);
+                } else {
+                    glBindTexture(GL_TEXTURE_2D, 0);
+                }
+                if (pl.visible) {
+                    pl.render();
+                }
+            }
+            glBindTexture(GL_TEXTURE_2D, 0);
+            for (Entity e : entities) {
+                if (e.visible) {
+                    e.render();
+                }
+            }
+            glPopMatrix();
+            glfwSwapBuffers(window); // swap the color buffers
+
+            // Poll for window events. The key callback above will only be
+            // invoked during this call.
+            glfwPollEvents();
+            runGameLogic();
+        }
+    }
 
     private static void init() {
         // Setup an error callback. The default implementation
@@ -232,7 +341,7 @@ public class Main {
                 p.setX(player2.getX() + player2.getWidth() / 2);
                 p.setWidth(2);
                 p.setHeight(5);
-                p.setyVelocity(10);
+                p.setyVelocity(-10);
                 entities.add(p);
             }
             // Player 1 throw
@@ -279,111 +388,54 @@ public class Main {
         glfwShowWindow(window);
     }
 
+    private static int loadTexture(String fileName) throws Exception {
+        int width;
+        int height;
+        ByteBuffer buf;
+        // Load Texture file
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            IntBuffer w = stack.mallocInt(1);
+            IntBuffer h = stack.mallocInt(1);
+            IntBuffer channels = stack.mallocInt(1);
 
-    private static void loop() {
-        GL.createCapabilities();
-        glEnable(GL_TEXTURE_2D);
-
-        // Set the clear color
-        glClearColor(0.0f, 1.0f, 1.0f, 0.0f);
-
-        // Player 1 init
-        player1 = new Player();
-        player1.setX(150);
-        player1.setY(0);
-        player1.setWidth(30);
-        player1.setHeight(60);
-        entities.add(player1);
-
-        // Player 2 init
-        player2 = new Player();
-        player2.setX(190);
-        player2.setY(0);
-        player2.setWidth(30);
-        player2.setHeight(30);
-        entities.add(player2);
-        //player1 = player2;
-
-
-        loadLevel("/testLevel.lvl.gz");
-
-
-        glTranslated(-1, 1, 0);
-
-        int texture;
-        try {
-            texture = loadTexture("Background.jpg");
-        } catch (Exception e) {
-            e.printStackTrace();
-            texture = 0;
-        }
-
-        int buttonTexture;
-        try {
-            buttonTexture = loadTexture("button.png");
-        } catch (Exception e) {
-            e.printStackTrace();
-            buttonTexture = 0;
-        }
-
-        playMusic("boop.ogg");
-
-
-        // Run the rendering loop until the user has attempted to close
-        // the window or has pressed the ESCAPE key.
-        while (!glfwWindowShouldClose(window)) {
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
-
-            if (resized) {
-                glViewport(0, 0, windowWidth, windowHeight);
-                resized = false;
+            buf = STBImage.stbi_load(fileName, w, h, channels, 4);
+            if (buf == null) {
+                throw new Exception("Image file [" + fileName + "] not loaded: " + STBImage.stbi_failure_reason());
             }
 
-            glPushMatrix();
-            glScaled(1 / 600d, 1 / 600d, 1);
-
-            //background
-            glPushMatrix();
-            glTranslated(0, -1200, 0);
-            //glTranslated(Main.cameraX,Main.cameraY,0);
-            glBindTexture(GL_TEXTURE_2D, texture);
-            glBegin(GL_QUADS);
-            glColor4f(1, 1, 1, 1);
-            glTexCoord2f(0, 1);
-            glVertex2d(0, 0);
-            glTexCoord2f(1, 1);
-            glVertex2d(0, 1200);
-            glTexCoord2f(0, 0);
-            glVertex2d(1200, 1200);
-            glTexCoord2f(1, 0);
-            glVertex2d(1200, 0);
-            glEnd();
-            glPopMatrix();
-            //
-            for (Renderable pl : platforms) {
-                if (pl instanceof Button) {
-                    glBindTexture(GL_TEXTURE_2D, buttonTexture);
-                } else {
-                    glBindTexture(GL_TEXTURE_2D, 0);
-                }
-                if (pl.visible) {
-                    pl.render();
-                }
-            }
-            glBindTexture(GL_TEXTURE_2D, 0);
-            for (Entity e : entities) {
-                if (e.visible) {
-                    e.render();
-                }
-            }
-            glPopMatrix();
-            glfwSwapBuffers(window); // swap the color buffers
-
-            // Poll for window events. The key callback above will only be
-            // invoked during this call.
-            glfwPollEvents();
-            runGameLogic();
+            width = w.get();
+            height = h.get();
         }
+
+        // Create a new OpenGL texture
+        int textureId = glGenTextures();
+        // Bind the texture
+        glBindTexture(GL_TEXTURE_2D, textureId);
+
+        // Tell OpenGL how to unpack the RGBA bytes. Each component is 1 byte size
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        // Upload the texture data
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
+                GL_RGBA, GL_UNSIGNED_BYTE, buf);
+        // Generate Mip Map
+        GL30.glGenerateMipmap(GL_TEXTURE_2D);
+
+        STBImage.stbi_image_free(buf);
+
+        return textureId;
+    }
+
+    /**
+     * Give the magic number for the rotation of player1
+     *
+     * @return 1 if player is facing right, -1 if player is facing left
+     */
+    private static int getMulRotation() {
+        return (int) Math.signum(player1.getX() - player1.getLastX());
     }
 
     private static void loadLevel(String name) {
@@ -444,61 +496,24 @@ public class Main {
                 } catch (NumberFormatException e) {
                     System.err.println("Bad number for line " + pl + "skipping");
                 }
+            } else if (coords.length == 5 && coords[0].equals("d")) {
+                DeathPlane p = new DeathPlane();
+                try {
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2]));
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2])); // duplicated because lastx and lasty
+                    p.setHeight(Double.parseDouble(coords[3]));
+                    p.setWidth(Double.parseDouble(coords[4]));
+                    platforms.add(p);
+                } catch (NumberFormatException e) {
+                    System.err.println("Bad number for line " + pl + "skipping");
+                }
             } else {
                 //uh uh
                 System.err.println("this line " + pl + " is invalid ! skipping");
             }
         }
-    }
-
-    private static int loadTexture(String fileName) throws Exception {
-        int width;
-        int height;
-        ByteBuffer buf;
-        // Load Texture file
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            IntBuffer w = stack.mallocInt(1);
-            IntBuffer h = stack.mallocInt(1);
-            IntBuffer channels = stack.mallocInt(1);
-
-            buf = STBImage.stbi_load(fileName, w, h, channels, 4);
-            if (buf == null) {
-                throw new Exception("Image file [" + fileName + "] not loaded: " + STBImage.stbi_failure_reason());
-            }
-
-            width = w.get();
-            height = h.get();
-        }
-
-        // Create a new OpenGL texture
-        int textureId = glGenTextures();
-        // Bind the texture
-        glBindTexture(GL_TEXTURE_2D, textureId);
-
-        // Tell OpenGL how to unpack the RGBA bytes. Each component is 1 byte size
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-        // Upload the texture data
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
-                GL_RGBA, GL_UNSIGNED_BYTE, buf);
-        // Generate Mip Map
-        GL30.glGenerateMipmap(GL_TEXTURE_2D);
-
-        STBImage.stbi_image_free(buf);
-
-        return textureId;
-    }
-
-    /**
-     * Give the magic number for the rotation of player1
-     *
-     * @return 1 if player is facing right, -1 if player is facing left
-     */
-    private static int getMulRotation() {
-        return (int) Math.signum(player1.getX() - player1.getLastX());
     }
 
     private static void runGameLogic() {
@@ -527,7 +542,6 @@ public class Main {
                 }
             }
         }
-        ArrayList<Entity> forDeletion = new ArrayList<>();
         // Entity-Platform collisions
         for (Entity e : entities) {
             if (!e.collidable) {
@@ -543,9 +557,14 @@ public class Main {
                         if (((ActionOnTouch) e).onHit(p)) {
                             forDeletion.add(e);
                         }
-                        continue;
                     }
-                    Utils.resolveCollision(e, p);
+                    if (p instanceof ActionOnTouch) {
+                        ((ActionOnTouch) p).onHit(e);
+                        Utils.resolveCollision(e, p);
+                    }
+                    if (!(e instanceof ActionOnTouch) && !(p instanceof ActionOnTouch)) { //TODO will maybe cause errors in the future, be careful
+                        Utils.resolveCollision(e, p);
+                    }
                 }
             }
         }
@@ -597,7 +616,7 @@ public class Main {
         for (Entity i : forDeletion) {
             entities.remove(i);
         }
-
+        forDeletion.clear();
         // Friction
         for (Entity e : entities) {
             if (e instanceof Projectile) {
@@ -617,10 +636,42 @@ public class Main {
             }
         }
         // Camera following p1
-        //TODO put a good camera in
         cameraX += (player1.getX() - player1.getLastX());
         cameraY += ((player1.getY() - player1.getLastY()) - 0.981);
-        //cameraX = 300;
+        if (reset) {
+            resetLevel();
+        }
     }
 
+    public static void queueReset() {
+        reset = true;
+    }
+
+    private static void resetLevel() {
+        System.out.println("clearing out !");
+        reset = false;
+        entities.clear();
+        platforms.clear();
+
+        // Player 1 init
+        player1 = new Player();
+        player1.setX(150);
+        player1.setY(0);
+        player1.setWidth(30);
+        player1.setHeight(60);
+        entities.add(player1);
+
+        // Player 2 init
+        player2 = new Player();
+        player2.setX(190);
+        player2.setY(0);
+        player2.setWidth(30);
+        player2.setHeight(30);
+        entities.add(player2);
+
+        cameraX = 0;
+        cameraY = 800;
+
+        loadLevel("/testLevel.lvl.gz");
+    }
 }
