@@ -28,6 +28,7 @@ public class Main {
     private static final int DOUBLE_TAP_DELAY = 500;
     private static final double GROUND_FRICTION = 0.25;
     private static final double AIR_FRICTION = 0.00;
+    private static final long GRAB_COOLDOWN = 200;
     public static int cameraX = 0;
     public static int cameraY = 0;
     public static ArrayList<Entity> entities = new ArrayList<>();
@@ -115,6 +116,9 @@ public class Main {
         }).start();
     }
 
+    public static long grabTimeout = 0;
+    private static boolean isGrabbed = false;
+
     private static void init() {
         // Setup an error callback. The default implementation
         // will print the error message in System.err.
@@ -193,7 +197,7 @@ public class Main {
                     player1.setxVelocity(player1.getxVelocity() + 8 * player1.getWalking());
                 }
             }
-
+            // Player 2 shooting: Arrow Keys
             if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
                 Projectile p = new Projectile();
                 p.setY(player2.getY() + player2.getHeight());
@@ -230,8 +234,14 @@ public class Main {
                 p.setyVelocity(10);
                 entities.add(p);
             }
-            // Player 2 shooting: Arrow Keys
-            // TODO
+            // Player 1 throw
+            if (key == GLFW_KEY_Y && action == GLFW_PRESS) {
+                if (isGrabbed) {
+                    player2.setxVelocity(10 * getMulRotation());
+                    grabTimeout = System.currentTimeMillis() + GRAB_COOLDOWN;
+                    isGrabbed = false;
+                }
+            }
         });
 
         glfwSetFramebufferSizeCallback(window, (window, width, height) -> {
@@ -430,6 +440,15 @@ public class Main {
         return textureId;
     }
 
+    /**
+     * Give the magic number for the rotation of player1
+     *
+     * @return 1 if player is facing right, -1 if player is facing left
+     */
+    private static int getMulRotation() {
+        return (int) Math.signum(player1.getX() - player1.getLastX());
+    }
+
     private static void runGameLogic() {
         //TODO put a good camera in
         //cameraX = 300;
@@ -438,9 +457,11 @@ public class Main {
         for (Entity e : entities) {
             if (!(e instanceof Projectile)) {
                 // Gravity
+                if (isGrabbed && e == player2) {
+                    continue;
+                }
                 e.setyVelocity(e.getyVelocity() - 0.981);
             }
-
             // New coordinates after velocity applied
             e.setX(e.getX() + e.getxVelocity());
             e.setY(e.getY() + e.getyVelocity());
@@ -450,6 +471,10 @@ public class Main {
                 Player p = (Player) e;
                 if (p.getWalking() != 0 && p.isOnGround()) {
                     p.setxVelocity(p.getSpeed() * p.getWalking());
+                }
+                if (isGrabbed) {
+                    player2.setX(player1.getX());
+                    player2.setY(player1.getY() + player1.getHeight() + 3); // 3 for spacing
                 }
             }
         }
@@ -490,8 +515,21 @@ public class Main {
                         if (((Projectile) other).onHit(e)) {
                             forDeletion.add((Projectile) other);
                         }
-                    } else//projectile on projectile ?
-                        Utils.resolveCollision(e, other);
+                    } else {//projectile on projectile ?
+                        if (e instanceof Player && other instanceof Player) {
+                            //player collision !
+                            if (grabTimeout > System.currentTimeMillis()) {
+                                continue; //nope too soon !
+                            }
+                            // let's do the grab thingy
+                            isGrabbed = true;
+                            //teleport second on top
+                            player2.setX(player1.getX());
+                            player2.setY(player1.getY() + player1.getHeight() + 3); // 3 for spacing
+
+                        } else
+                            Utils.resolveCollision(e, other);
+                    }
                 }
             }
         }
