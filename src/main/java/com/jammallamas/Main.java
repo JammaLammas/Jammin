@@ -47,6 +47,8 @@ public class Main {
         try {
             init();
             loop();
+        } catch (Throwable e) {
+            e.printStackTrace();
         } finally {
             ALC10.alcDestroyContext(context);
             ALC10.alcCloseDevice(device);
@@ -192,6 +194,42 @@ public class Main {
                 }
             }
 
+            if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+                Projectile p = new Projectile();
+                p.setY(player2.getY() + player2.getHeight());
+                p.setX(player2.getX() + player2.getWidth() / 2);
+                p.setWidth(2);
+                p.setHeight(5);
+                p.setyVelocity(10);
+                entities.add(p);
+            }
+            if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+                Projectile p = new Projectile();
+                p.setY(player2.getY() + player2.getHeight() / 2);
+                p.setX(player2.getX() - 5);
+                p.setWidth(5);
+                p.setHeight(2);
+                p.setxVelocity(-10);
+                entities.add(p);
+            }
+            if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+                Projectile p = new Projectile();
+                p.setY(player2.getY() + player2.getHeight() / 2);
+                p.setX(player2.getX() + player2.getWidth());
+                p.setWidth(5);
+                p.setHeight(2);
+                p.setxVelocity(10);
+                entities.add(p);
+            }
+            if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+                Projectile p = new Projectile();
+                p.setY(player2.getY());
+                p.setX(player2.getX() + player2.getWidth() / 2);
+                p.setWidth(2);
+                p.setHeight(5);
+                p.setyVelocity(10);
+                entities.add(p);
+            }
             // Player 2 shooting: Arrow Keys
             // TODO
         });
@@ -398,8 +436,10 @@ public class Main {
 
         // Entity movement
         for (Entity e : entities) {
-            // Gravity
-            e.setyVelocity(e.getyVelocity() - 0.981);
+            if (!(e instanceof Projectile)) {
+                // Gravity
+                e.setyVelocity(e.getyVelocity() - 0.981);
+            }
 
             // New coordinates after velocity applied
             e.setX(e.getX() + e.getxVelocity());
@@ -413,17 +453,27 @@ public class Main {
                 }
             }
         }
-
+        ArrayList<Projectile> forDeletion = new ArrayList<>();
         // Entity-Platform collisions
         for (Entity e : entities) {
             e.setOnGround(false);  // Default case, if onGround then will be set so below
             for (Platform p : platforms) {
                 if (Utils.intersects(e, p)) {
+                    if (e instanceof Projectile) {
+                        if (((Projectile) e).onHit(p)) {
+                            forDeletion.add((Projectile) e);
+                        }
+                        continue;
+                    }
                     Utils.resolveCollision(e, p);
                 }
             }
         }
-
+        for (Entity i : forDeletion) {
+            entities.remove(i);
+        }
+        forDeletion.clear();
+        // Entity-Entity collisions
         for (int i = 0, entitiesSize = entities.size(); i < entitiesSize; i++) {
             Entity e = entities.get(i);
             for (int j = 0, size = entities.size(); j < size; j++) {
@@ -432,15 +482,28 @@ public class Main {
                     continue; // no self-collision
                 }
                 if (Utils.intersects(e, other)) {
-                    Utils.resolveCollision(e, other);
+                    if (e instanceof Projectile) {
+                        if (((Projectile) e).onHit(other)) {
+                            forDeletion.add((Projectile) e);
+                        }
+                    } else if (other instanceof Projectile) {
+                        if (((Projectile) other).onHit(e)) {
+                            forDeletion.add((Projectile) other);
+                        }
+                    } else//projectile on projectile ?
+                        Utils.resolveCollision(e, other);
                 }
             }
         }
-        // Entity-Entity colllisions
-        // TODO
+        for (Entity i : forDeletion) {
+            entities.remove(i);
+        }
 
         // Friction
         for (Entity e : entities) {
+            if (e instanceof Projectile) {
+                continue;
+            }
             boolean onGround = e.isOnGround();
             if (e.getxVelocity() > 0) {
                 e.setxVelocity(e.getxVelocity() - e.getxVelocity() * (onGround ? GROUND_FRICTION : AIR_FRICTION));
