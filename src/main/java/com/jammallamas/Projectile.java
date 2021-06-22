@@ -2,7 +2,7 @@ package com.jammallamas;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class Projectile extends Entity {
+public class Projectile extends Entity implements ActionOnTouch {
     @Override
     public void render() {
         glPushMatrix();
@@ -20,6 +20,9 @@ public class Projectile extends Entity {
 
     public boolean onHit(Renderable r) {
         //hit a platform
+        if (r instanceof Button) {
+            ((Button) r).onHit(this);
+        }
         return true; //destroy self
     }
 

@@ -7,6 +7,8 @@ public abstract class Renderable {
     private double y;
     private double height;
     private double width;
+    public boolean visible = true;
+    public boolean collidable = true;
 
     public double getY() {
         return y;

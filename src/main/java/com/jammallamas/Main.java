@@ -32,7 +32,7 @@ public class Main {
     public static double cameraX = 0;
     public static double cameraY = 400;
     public static ArrayList<Entity> entities = new ArrayList<>();
-    public static ArrayList<Platform> platforms = new ArrayList<>();
+    public static ArrayList<Renderable> platforms = new ArrayList<>();
     public static Player player1;
     public static Player player2;
     private static long window;
@@ -142,7 +142,8 @@ public class Main {
         ALCapabilities alCapabilities = AL.createCapabilities(alcCapabilities);
 
         // Create the window
-        window = glfwCreateWindow(300, 300, "Hello Jammers!", NULL, NULL);
+        //300x300
+        window = glfwCreateWindow(600, 600, "Hello Jammers!", NULL, NULL);
         if (window == NULL)
             throw new RuntimeException("Failed to create the GLFW window");
 
@@ -237,7 +238,7 @@ public class Main {
             // Player 1 throw
             if (key == GLFW_KEY_Y && action == GLFW_PRESS) {
                 if (isGrabbed) {
-                    player2.setxVelocity(10 * getMulRotation());
+                    player2.setxVelocity(20 * getMulRotation());
                     grabTimeout = System.currentTimeMillis() + GRAB_COOLDOWN;
                     isGrabbed = false;
                 }
@@ -278,6 +279,7 @@ public class Main {
         glfwShowWindow(window);
     }
 
+
     private static void loop() {
         GL.createCapabilities();
         glEnable(GL_TEXTURE_2D);
@@ -298,7 +300,7 @@ public class Main {
         player2.setX(190);
         player2.setY(0);
         player2.setWidth(30);
-        player2.setHeight(60);
+        player2.setHeight(30);
         entities.add(player2);
         //player1 = player2;
 
@@ -314,6 +316,14 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
             texture = 0;
+        }
+
+        int buttonTexture;
+        try {
+            buttonTexture = loadTexture("button.png");
+        } catch (Exception e) {
+            e.printStackTrace();
+            buttonTexture = 0;
         }
 
         playMusic("boop.ogg");
@@ -349,14 +359,22 @@ public class Main {
             glVertex2d(600, 0);
             glEnd();
             glPopMatrix();
-            glBindTexture(GL_TEXTURE_2D, 0);
             //
-            for (Platform pl : platforms) {
-                pl.render();
+            for (Renderable pl : platforms) {
+                if (pl instanceof Button) {
+                    glBindTexture(GL_TEXTURE_2D, buttonTexture);
+                } else {
+                    glBindTexture(GL_TEXTURE_2D, 0);
+                }
+                if (pl.visible) {
+                    pl.render();
+                }
             }
-
+            glBindTexture(GL_TEXTURE_2D, 0);
             for (Entity e : entities) {
-                e.render();
+                if (e.visible) {
+                    e.render();
+                }
             }
             glPopMatrix();
             glfwSwapBuffers(window); // swap the color buffers
@@ -372,26 +390,60 @@ public class Main {
         platforms.clear();
         String data = Utils.loadGzResource(name);
         String[] plats = data.split("\n");
+        Button lastButton = null;
         for (String pl : plats) {
-            if (pl.startsWith("//")) {
+            if (pl.trim().length() == 0 || pl.startsWith("//")) {
                 continue;
             }
             String[] coords = pl.split(":");
-            //x:y:h:w
-            if (coords.length == 4) {
+            //p:x:y:h:w
+            if (coords.length == 5 && coords[0].equals("p")) {
                 Platform p = new Platform();
                 try {
-                    p.setX(Double.parseDouble(coords[0]));
-                    p.setY(Double.parseDouble(coords[1]));
-                    p.setX(Double.parseDouble(coords[0]));
-                    p.setY(Double.parseDouble(coords[1])); // duplicated because lastx and lasty
-                    p.setHeight(Double.parseDouble(coords[2]));
-                    p.setWidth(Double.parseDouble(coords[3]));
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2]));
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2])); // duplicated because lastx and lasty
+                    p.setHeight(Double.parseDouble(coords[3]));
+                    p.setWidth(Double.parseDouble(coords[4]));
                     platforms.add(p);
                 } catch (NumberFormatException e) {
                     System.err.println("Bad number for line " + pl + "skipping");
                 }
-
+                //b:x:y:h:w
+            } else if (coords.length == 5 && coords[0].equals("b")) {
+                Button p = new Button();
+                try {
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2]));
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2])); // duplicated because lastx and lasty
+                    p.setHeight(Double.parseDouble(coords[3]));
+                    p.setWidth(Double.parseDouble(coords[4]));
+                    platforms.add(p);
+                    lastButton = p;
+                } catch (NumberFormatException e) {
+                    System.err.println("Bad number for line " + pl + "skipping");
+                }
+            } else if (coords.length == 5 && coords[0].equals("br")) {
+                Bridge p = new Bridge();
+                try {
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2]));
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2])); // duplicated because lastx and lasty
+                    p.setHeight(Double.parseDouble(coords[3]));
+                    p.setWidth(Double.parseDouble(coords[4]));
+                    if (lastButton == null) {
+                        System.err.println("Bridge was tried to be created but no button was found ! " +
+                                "Skipping for line : " + pl);
+                        continue;
+                    }
+                    platforms.add(p);
+                    lastButton.setAction(p);
+                } catch (NumberFormatException e) {
+                    System.err.println("Bad number for line " + pl + "skipping");
+                }
             } else {
                 //uh uh
                 System.err.println("this line " + pl + " is invalid ! skipping");
@@ -475,15 +527,21 @@ public class Main {
                 }
             }
         }
-        ArrayList<Projectile> forDeletion = new ArrayList<>();
+        ArrayList<Entity> forDeletion = new ArrayList<>();
         // Entity-Platform collisions
         for (Entity e : entities) {
+            if (!e.collidable) {
+                continue;
+            }
             e.setOnGround(false);  // Default case, if onGround then will be set so below
-            for (Platform p : platforms) {
+            for (Renderable p : platforms) {
+                if (!p.collidable) {
+                    continue;
+                }
                 if (Utils.intersects(e, p)) {
-                    if (e instanceof Projectile) {
-                        if (((Projectile) e).onHit(p)) {
-                            forDeletion.add((Projectile) e);
+                    if (e instanceof ActionOnTouch) {
+                        if (((ActionOnTouch) e).onHit(p)) {
+                            forDeletion.add(e);
                         }
                         continue;
                     }
@@ -498,19 +556,25 @@ public class Main {
         // Entity-Entity collisions
         for (int i = 0, entitiesSize = entities.size(); i < entitiesSize; i++) {
             Entity e = entities.get(i);
+            if (!e.collidable) {
+                continue;
+            }
             for (int j = 0, size = entities.size(); j < size; j++) {
                 Entity other = entities.get(j);
+                if (!other.collidable) {
+                    continue;
+                }
                 if (i == j) {
                     continue; // no self-collision
                 }
                 if (Utils.intersects(e, other)) {
-                    if (e instanceof Projectile) {
-                        if (((Projectile) e).onHit(other)) {
-                            forDeletion.add((Projectile) e);
+                    if (e instanceof ActionOnTouch) {
+                        if (((ActionOnTouch) e).onHit(other)) {
+                            forDeletion.add(e);
                         }
-                    } else if (other instanceof Projectile) {
-                        if (((Projectile) other).onHit(e)) {
-                            forDeletion.add((Projectile) other);
+                    } else if (other instanceof ActionOnTouch) {
+                        if (((ActionOnTouch) other).onHit(e)) {
+                            forDeletion.add(other);
                         }
                     } else {//projectile on projectile ?
                         if (e instanceof Player && other instanceof Player) {
