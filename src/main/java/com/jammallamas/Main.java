@@ -25,14 +25,15 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Main {
 
-    private final static double SPEED = 5;
     private static final int DOUBLE_TAP_DELAY = 500;
+	private static final double GROUND_FRICTION = 0.25;
+	private static final double AIR_FRICTION = 0.00;
     public static int cameraX = 0;
     public static int cameraY = 0;
-    public static byte walking = 0;
     public static ArrayList<Entity> entities = new ArrayList<>();
     public static ArrayList<Platform> platforms = new ArrayList<>();
-    public static Player player;
+    public static Player player1;
+    public static Player player2;
     private static long window;
     private static int windowWidth;
     private static int windowHeight;
@@ -141,45 +142,60 @@ public class Main {
 
         // Setup a key callback. It will be called every time a key is pressed, repeated or released.
         glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
+			// Escape key: close
             if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
                 glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
+			
+			// Player 1 movement: WASD
+
+			// D key: walk right if pressed, stop if released
             if (key == GLFW_KEY_D && action == GLFW_PRESS) {
 
                 if (lastPressed + DOUBLE_TAP_DELAY >= System.currentTimeMillis()) {
-                    player.setxVelocity(SPEED * 10);
-                    walking = 0;
+                    player1.setxVelocity(player1.getSpeed() * 10);
+                    player1.setWalking((byte) 0);
                 } else {
-                    walking = (byte) (walking == -1 ? 0 : 1);
+                    player1.setWalking((byte) (player1.getWalking() == -1 ? 0 : 1));
                 }
                 lastPressed = System.currentTimeMillis();
             }
             if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
-                walking = 0;
+                player1.setWalking((byte) 0);
             }
+
+			// A key: walk left if pressed, stop if released
             if (key == GLFW_KEY_A && action == GLFW_PRESS) {
                 if (lastPressedL + DOUBLE_TAP_DELAY >= System.currentTimeMillis()) {
-                    player.setxVelocity(SPEED * -10);
-                    walking = 0;
+                    player1.setxVelocity(player1.getSpeed() * -10);
+                    player1.setWalking((byte) 0);
                 } else {
-                    walking = (byte) (walking == -1 ? 0 : -1);
+					player1.setWalking((byte) (player1.getWalking() == -1 ? 0 : -1));
                 }
                 lastPressedL = System.currentTimeMillis();
             }
             if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
-                walking = 0;
+                player1.setWalking((byte) 0);
             }
-            if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
-                if (!player.isOnGround()) {
-                    player.setyVelocity(player.getyVelocity() + 2);
-                    player.setxVelocity(8);
-                }
-            }
+
+			// W key: Jump
             if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
-                if (player.isOnGround()) {
-                    player.setyVelocity(25);
+                if (player1.isOnGround()) {
+                    player1.setyVelocity(25);
                 }
             }
+
+			// S key: Dash, with a small jump.
+            if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+                if (!player1.isOnGround()) {
+                    player1.setyVelocity(player1.getyVelocity() + 2);
+                    player1.setxVelocity(8);
+                }
+            }
+
+			// Player 2 shooting: Arrow Keys
+			// TODO
         });
+
         glfwSetFramebufferSizeCallback(window, (window, width, height) -> {
             windowWidth = width;
             windowHeight = height;
@@ -220,13 +236,24 @@ public class Main {
 
         // Set the clear color
         glClearColor(0.0f, 1.0f, 1.0f, 0.0f);
-        Player p = new Player();
-        p.setX(20);
-        p.setY(-10);
-        p.setWidth(30);
-        p.setHeight(60);
-        entities.add(p);
-        player = p;
+
+		// Player 1 init
+        player1 = new Player();
+        player1.setX(20);
+        player1.setY(-10);
+        player1.setWidth(30);
+        player1.setHeight(60);
+        entities.add(player1);
+
+		// Player 2 init
+        player2 = new Player();
+        player2.setX(20);
+        player2.setY(60);
+        player2.setWidth(30);
+        player2.setHeight(60);
+        entities.add(player2);
+        player1 = player2;
+
 
         loadLevel("/testLevel.lvl.gz");
 
@@ -369,35 +396,53 @@ public class Main {
         //TODO put a good camera in
         cameraX = 300;
 
+		// Entity movement
+		for(Entity e: entities){
+			// Gravity
+			e.setyVelocity(e.getyVelocity() - 0.981);
 
-        player.setyVelocity(player.getyVelocity() - 0.981);
-        player.setY(player.getY() + player.getyVelocity());
-        player.setX(player.getX() + player.getxVelocity());
-        if (walking != 0 && player.isOnGround()) {
-            player.setxVelocity(SPEED * walking);
-        }
-        //player.setX(player.getX() + SPEED * walking);
-        player.setOnGround(false);
-        for (Platform p : platforms) {
-            if (Utils.intersects(player, p)) {
-                Utils.resolveCollision(player, p);
-            }
-        }
-        boolean onGround = player.isOnGround();
-        final double groundFriction = 0.25;
-        final double airFriction = 0.00;
-        if (player.getxVelocity() > 0) {
-            player.setxVelocity(player.getxVelocity() - player.getxVelocity() * (onGround ? groundFriction : airFriction));
-            if (player.getxVelocity() < 0) {
-                player.setxVelocity(0);
-            }
-        } else if (player.getxVelocity() < 0) {
-            player.setxVelocity(player.getxVelocity() + -player.getxVelocity() * (onGround ? groundFriction : airFriction));
-            if (player.getxVelocity() > 0) {
-                player.setxVelocity(0);
-            }
-        }
+			// New coordinates after velocity applied
+			e.setX(e.getX() + e.getxVelocity());
+			e.setY(e.getY() + e.getyVelocity());
+			
+			// Add walking velocity to velocity
+			if(e instanceof Player){
+				Player p = (Player) e;
+				if (p.getWalking() != 0 && p.isOnGround()) {
+					p.setxVelocity(p.getSpeed() * p.getWalking());
+				}
+			}
+		}
+		
+		// Entity-Platform collisions
+		for(Entity e: entities){
+			e.setOnGround(false);  // Default case, if onGround then will be set so below
+			for (Platform p : platforms) {
+				if (Utils.intersects(e, p)) {
+					Utils.resolveCollision(e, p);
+				}
+			}
+		}
 
+		// Entity-Entity colllisions
+		// TODO
+
+		// Friction
+		for(Entity e : entities) {
+			boolean onGround = e.isOnGround();
+			if (e.getxVelocity() > 0) {
+				e.setxVelocity(e.getxVelocity() - e.getxVelocity() * (onGround ? GROUND_FRICTION : AIR_FRICTION));
+				if (e.getxVelocity() < 0) {
+					e.setxVelocity(0);
+				}
+			} else if (e.getxVelocity() < 0) {
+				e.setxVelocity(e.getxVelocity() + -e.getxVelocity() * (onGround ? GROUND_FRICTION : AIR_FRICTION));
+				if (e.getxVelocity() > 0) {
+					e.setxVelocity(0);
+				}
+			}
+		}
+        
     }
 
 }

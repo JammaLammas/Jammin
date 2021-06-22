@@ -3,6 +3,7 @@ package com.jammallamas;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Player extends Entity {
+	private byte walking = 0;
 
     @Override
     public void render() {
@@ -17,6 +18,15 @@ public class Player extends Entity {
         glVertex2d(getWidth(), 0);
         glEnd();
         glPopMatrix();
+    }
+
+	
+    public byte getWalking() {
+        return this.walking;
+    }
+
+    public void setWalking(byte walking) {
+        this.walking = walking;
     }
 
 }
