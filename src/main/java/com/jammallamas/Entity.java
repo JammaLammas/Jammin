@@ -14,7 +14,7 @@ public abstract class Entity extends Renderable {
         this.onGround = onGround;
     }
 
-	public double getSpeed() {
+    public double getSpeed() {
         return speed;
     }
 

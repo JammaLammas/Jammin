@@ -26,8 +26,8 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 public class Main {
 
     private static final int DOUBLE_TAP_DELAY = 500;
-	private static final double GROUND_FRICTION = 0.25;
-	private static final double AIR_FRICTION = 0.00;
+    private static final double GROUND_FRICTION = 0.25;
+    private static final double AIR_FRICTION = 0.00;
     public static int cameraX = 0;
     public static int cameraY = 0;
     public static ArrayList<Entity> entities = new ArrayList<>();
@@ -142,13 +142,13 @@ public class Main {
 
         // Setup a key callback. It will be called every time a key is pressed, repeated or released.
         glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
-			// Escape key: close
+            // Escape key: close
             if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
                 glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
-			
-			// Player 1 movement: WASD
 
-			// D key: walk right if pressed, stop if released
+            // Player 1 movement: WASD
+
+            // D key: walk right if pressed, stop if released
             if (key == GLFW_KEY_D && action == GLFW_PRESS) {
 
                 if (player1.isOnGround() && lastPressed + DOUBLE_TAP_DELAY >= System.currentTimeMillis()) {
@@ -163,7 +163,7 @@ public class Main {
                 player1.setWalking((byte) 0);
             }
 
-			// A key: walk left if pressed, stop if released
+            // A key: walk left if pressed, stop if released
             if (key == GLFW_KEY_A && action == GLFW_PRESS) {
                 if (player1.isOnGround() && lastPressedL + DOUBLE_TAP_DELAY >= System.currentTimeMillis()) {
                     player1.setxVelocity(player1.getSpeed() * -5);
@@ -237,7 +237,7 @@ public class Main {
         // Set the clear color
         glClearColor(0.0f, 1.0f, 1.0f, 0.0f);
 
-		// Player 1 init
+        // Player 1 init
         player1 = new Player();
         player1.setX(60);
         player1.setY(-10);
@@ -245,7 +245,7 @@ public class Main {
         player1.setHeight(60);
         entities.add(player1);
 
-		// Player 2 init
+        // Player 2 init
         player2 = new Player();
         player2.setX(100);
         player2.setY(60);
@@ -396,23 +396,23 @@ public class Main {
         //TODO put a good camera in
         //cameraX = 300;
 
-		// Entity movement
-		for(Entity e: entities){
-			// Gravity
-			e.setyVelocity(e.getyVelocity() - 0.981);
+        // Entity movement
+        for (Entity e : entities) {
+            // Gravity
+            e.setyVelocity(e.getyVelocity() - 0.981);
 
-			// New coordinates after velocity applied
-			e.setX(e.getX() + e.getxVelocity());
-			e.setY(e.getY() + e.getyVelocity());
-			
-			// Add walking velocity to velocity
-			if(e instanceof Player){
-				Player p = (Player) e;
-				if (p.getWalking() != 0 && p.isOnGround()) {
-					p.setxVelocity(p.getSpeed() * p.getWalking());
-				}
-			}
-		}
+            // New coordinates after velocity applied
+            e.setX(e.getX() + e.getxVelocity());
+            e.setY(e.getY() + e.getyVelocity());
+
+            // Add walking velocity to velocity
+            if (e instanceof Player) {
+                Player p = (Player) e;
+                if (p.getWalking() != 0 && p.isOnGround()) {
+                    p.setxVelocity(p.getSpeed() * p.getWalking());
+                }
+            }
+        }
 
         // Entity-Platform collisions
         for (Entity e : entities) {
@@ -446,15 +446,15 @@ public class Main {
                 e.setxVelocity(e.getxVelocity() - e.getxVelocity() * (onGround ? GROUND_FRICTION : AIR_FRICTION));
                 if (e.getxVelocity() < 0) {
                     e.setxVelocity(0);
-				}
-			} else if (e.getxVelocity() < 0) {
-				e.setxVelocity(e.getxVelocity() + -e.getxVelocity() * (onGround ? GROUND_FRICTION : AIR_FRICTION));
-				if (e.getxVelocity() > 0) {
-					e.setxVelocity(0);
-				}
-			}
-		}
-        
+                }
+            } else if (e.getxVelocity() < 0) {
+                e.setxVelocity(e.getxVelocity() + -e.getxVelocity() * (onGround ? GROUND_FRICTION : AIR_FRICTION));
+                if (e.getxVelocity() > 0) {
+                    e.setxVelocity(0);
+                }
+            }
+        }
+
     }
 
 }
