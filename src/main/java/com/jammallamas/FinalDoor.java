@@ -2,10 +2,10 @@ package com.jammallamas;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class Button extends Renderable implements ActionOnTouch {
-
-    private ButtonLinkable action = null;
-
+public class FinalDoor extends Renderable {
+    public FinalDoor() {
+        collidable = false;
+    }
 
     @Override
     public void render() {
@@ -25,23 +25,5 @@ public class Button extends Renderable implements ActionOnTouch {
         glVertex2d(getWidth(), 0);
         glEnd();
         glPopMatrix();
-    }
-
-
-    @Override
-    public boolean onHit(Entity e) {
-        if (e instanceof Projectile && action != null) {
-            action.onButton();
-        }
-        return false;
-    }
-
-    @Override
-    public boolean onHit(Renderable r) {
-        return false;
-    }
-
-    public void setAction(ButtonLinkable action) {
-        this.action = action;
     }
 }

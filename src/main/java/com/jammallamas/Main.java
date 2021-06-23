@@ -168,6 +168,14 @@ public class Main {
             buttonTexture = 0;
         }
 
+        int doorTexture;
+        try {
+            doorTexture = loadTexture("door.png");
+        } catch (Exception e) {
+            e.printStackTrace();
+            doorTexture = 0;
+        }
+
         playMusic("boop.ogg");
 
 
@@ -204,8 +212,13 @@ public class Main {
             //
             for (Renderable pl : platforms) {
                 if (pl instanceof Button) {
+                    glColor4f(1, 1, 1, 1);
                     glBindTexture(GL_TEXTURE_2D, buttonTexture);
+                } else if (pl instanceof FinalDoor) {
+                    glColor4f(1, 1, 1, 1);
+                    glBindTexture(GL_TEXTURE_2D, doorTexture);
                 } else {
+                    glColor4f(0, 0, 0, 0);
                     glBindTexture(GL_TEXTURE_2D, 0);
                 }
                 if (pl.visible) {
@@ -498,6 +511,19 @@ public class Main {
                 }
             } else if (coords.length == 5 && coords[0].equals("d")) {
                 DeathPlane p = new DeathPlane();
+                try {
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2]));
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2])); // duplicated because lastx and lasty
+                    p.setHeight(Double.parseDouble(coords[3]));
+                    p.setWidth(Double.parseDouble(coords[4]));
+                    platforms.add(p);
+                } catch (NumberFormatException e) {
+                    System.err.println("Bad number for line " + pl + "skipping");
+                }
+            } else if (coords.length == 5 && coords[0].equals("end")) {
+                FinalDoor p = new FinalDoor();
                 try {
                     p.setX(Double.parseDouble(coords[1]));
                     p.setY(Double.parseDouble(coords[2]));

@@ -2,9 +2,6 @@
 //platform
 p:0:-630:100:600
 
-//old wall
-//p:500:-550:400:100
-
 //buttons
 b:500:-300:50:50
 //button activated bridge
@@ -12,6 +9,9 @@ br:600:-630:100:400
 
 //end platform
 p:1000:-630:100:400
+
+//final door
+end:1100:-530:150:100
 
 //death plane
 d:-1000:-1200:400:3000
