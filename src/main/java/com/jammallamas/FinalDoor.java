@@ -2,10 +2,7 @@ package com.jammallamas;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class FinalDoor extends Renderable {
-    public FinalDoor() {
-        collidable = false;
-    }
+public class FinalDoor extends Renderable implements ActionOnTouch {
 
     @Override
     public void render() {
@@ -25,5 +22,22 @@ public class FinalDoor extends Renderable {
         glVertex2d(getWidth(), 0);
         glEnd();
         glPopMatrix();
+    }
+
+    @Override
+    public boolean onHit(Entity e) {
+        if (!Main.isLoading) {
+            Main.isLoading = true;
+            System.out.println("more levels !");
+            Main.currentLevel++;
+            Main.queueReset();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean onHit(Renderable r) {
+        //never called
+        return false;
     }
 }

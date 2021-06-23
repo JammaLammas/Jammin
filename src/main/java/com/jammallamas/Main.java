@@ -29,6 +29,8 @@ public class Main {
     private static final double GROUND_FRICTION = 0.25;
     private static final double AIR_FRICTION = 0.00;
     private static final long GRAB_COOLDOWN = 200;
+    private static final String[] levels = new String[]{"/testLevel.lvl.gz", "/level2.lvl.gz"};
+    public static int currentLevel = 0;
     public static double cameraX = 0;
     public static double cameraY = 800;
     public static ArrayList<Entity> entities = new ArrayList<>();
@@ -120,126 +122,7 @@ public class Main {
     public static long grabTimeout = 0;
     public static boolean isGrabbed = false;
     private static boolean reset = false;
-
-
-    private static void loop() {
-        GL.createCapabilities();
-        glEnable(GL_TEXTURE_2D);
-
-        // Set the clear color
-        glClearColor(0.0f, 1.0f, 1.0f, 0.0f);
-
-        // Player 1 init
-        player1 = new Player();
-        player1.setX(150);
-        player1.setY(0);
-        player1.setWidth(30);
-        player1.setHeight(60);
-        entities.add(player1);
-
-        // Player 2 init
-        player2 = new Player();
-        player2.setX(190);
-        player2.setY(0);
-        player2.setWidth(30);
-        player2.setHeight(30);
-        entities.add(player2);
-        //player1 = player2;
-
-
-        loadLevel("/testLevel.lvl.gz");
-
-
-        glTranslated(-1, 1, 0);
-
-        int texture;
-        try {
-            texture = loadTexture("Background.jpg");
-        } catch (Exception e) {
-            e.printStackTrace();
-            texture = 0;
-        }
-
-        int buttonTexture;
-        try {
-            buttonTexture = loadTexture("button.png");
-        } catch (Exception e) {
-            e.printStackTrace();
-            buttonTexture = 0;
-        }
-
-        int doorTexture;
-        try {
-            doorTexture = loadTexture("door.png");
-        } catch (Exception e) {
-            e.printStackTrace();
-            doorTexture = 0;
-        }
-
-        playMusic("boop.ogg");
-
-
-        // Run the rendering loop until the user has attempted to close
-        // the window or has pressed the ESCAPE key.
-        while (!glfwWindowShouldClose(window)) {
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
-
-            if (resized) {
-                glViewport(0, 0, windowWidth, windowHeight);
-                resized = false;
-            }
-
-            glPushMatrix();
-            glScaled(1 / 600d, 1 / 600d, 1);
-
-            //background
-            glPushMatrix();
-            glTranslated(0, -1200, 0);
-            //glTranslated(Main.cameraX,Main.cameraY,0);
-            glBindTexture(GL_TEXTURE_2D, texture);
-            glBegin(GL_QUADS);
-            glColor4f(1, 1, 1, 1);
-            glTexCoord2f(0, 1);
-            glVertex2d(0, 0);
-            glTexCoord2f(1, 1);
-            glVertex2d(0, 1200);
-            glTexCoord2f(0, 0);
-            glVertex2d(1200, 1200);
-            glTexCoord2f(1, 0);
-            glVertex2d(1200, 0);
-            glEnd();
-            glPopMatrix();
-            //
-            for (Renderable pl : platforms) {
-                if (pl instanceof Button) {
-                    glColor4f(1, 1, 1, 1);
-                    glBindTexture(GL_TEXTURE_2D, buttonTexture);
-                } else if (pl instanceof FinalDoor) {
-                    glColor4f(1, 1, 1, 1);
-                    glBindTexture(GL_TEXTURE_2D, doorTexture);
-                } else {
-                    glColor4f(0, 0, 0, 0);
-                    glBindTexture(GL_TEXTURE_2D, 0);
-                }
-                if (pl.visible) {
-                    pl.render();
-                }
-            }
-            glBindTexture(GL_TEXTURE_2D, 0);
-            for (Entity e : entities) {
-                if (e.visible) {
-                    e.render();
-                }
-            }
-            glPopMatrix();
-            glfwSwapBuffers(window); // swap the color buffers
-
-            // Poll for window events. The key callback above will only be
-            // invoked during this call.
-            glfwPollEvents();
-            runGameLogic();
-        }
-    }
+    public static boolean isLoading = false;
 
     private static void init() {
         // Setup an error callback. The default implementation
@@ -673,6 +556,125 @@ public class Main {
         reset = true;
     }
 
+    private static void loop() {
+        GL.createCapabilities();
+        glEnable(GL_TEXTURE_2D);
+
+        // Set the clear color
+        glClearColor(0.0f, 1.0f, 1.0f, 0.0f);
+
+        // Player 1 init
+        player1 = new Player();
+        player1.setX(150);
+        player1.setY(0);
+        player1.setWidth(30);
+        player1.setHeight(60);
+        entities.add(player1);
+
+        // Player 2 init
+        player2 = new Player();
+        player2.setX(190);
+        player2.setY(0);
+        player2.setWidth(30);
+        player2.setHeight(30);
+        entities.add(player2);
+        //player1 = player2;
+
+
+        loadLevel(levels[currentLevel]);
+
+
+        glTranslated(-1, 1, 0);
+
+        int texture;
+        try {
+            texture = loadTexture("Background.jpg");
+        } catch (Exception e) {
+            e.printStackTrace();
+            texture = 0;
+        }
+
+        int buttonTexture;
+        try {
+            buttonTexture = loadTexture("button.png");
+        } catch (Exception e) {
+            e.printStackTrace();
+            buttonTexture = 0;
+        }
+
+        int doorTexture;
+        try {
+            doorTexture = loadTexture("door.png");
+        } catch (Exception e) {
+            e.printStackTrace();
+            doorTexture = 0;
+        }
+
+        playMusic("boop.ogg");
+
+
+        // Run the rendering loop until the user has attempted to close
+        // the window or has pressed the ESCAPE key.
+        while (!glfwWindowShouldClose(window)) {
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
+
+            if (resized) {
+                glViewport(0, 0, windowWidth, windowHeight);
+                resized = false;
+            }
+
+            glPushMatrix();
+            glScaled(1 / 600d, 1 / 600d, 1);
+
+            //background
+            glPushMatrix();
+            glTranslated(0, -1200, 0);
+            //glTranslated(Main.cameraX,Main.cameraY,0);
+            glBindTexture(GL_TEXTURE_2D, texture);
+            glBegin(GL_QUADS);
+            glColor4f(1, 1, 1, 1);
+            glTexCoord2f(0, 1);
+            glVertex2d(0, 0);
+            glTexCoord2f(1, 1);
+            glVertex2d(0, 1200);
+            glTexCoord2f(0, 0);
+            glVertex2d(1200, 1200);
+            glTexCoord2f(1, 0);
+            glVertex2d(1200, 0);
+            glEnd();
+            glPopMatrix();
+            //
+            for (Renderable pl : platforms) {
+                if (pl instanceof Button) {
+                    glColor4f(1, 1, 1, 1);
+                    glBindTexture(GL_TEXTURE_2D, buttonTexture);
+                } else if (pl instanceof FinalDoor) {
+                    glColor4f(1, 1, 1, 1);
+                    glBindTexture(GL_TEXTURE_2D, doorTexture);
+                } else {
+                    glColor4f(0, 0, 0, 0);
+                    glBindTexture(GL_TEXTURE_2D, 0);
+                }
+                if (pl.visible) {
+                    pl.render();
+                }
+            }
+            glBindTexture(GL_TEXTURE_2D, 0);
+            for (Entity e : entities) {
+                if (e.visible) {
+                    e.render();
+                }
+            }
+            glPopMatrix();
+            glfwSwapBuffers(window); // swap the color buffers
+
+            // Poll for window events. The key callback above will only be
+            // invoked during this call.
+            glfwPollEvents();
+            runGameLogic();
+        }
+    }
+
     private static void resetLevel() {
         System.out.println("clearing out !");
         reset = false;
@@ -698,6 +700,7 @@ public class Main {
         cameraX = 0;
         cameraY = 800;
 
-        loadLevel("/testLevel.lvl.gz");
+        loadLevel(levels[currentLevel]);
+        isLoading = false;
     }
 }
