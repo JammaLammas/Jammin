@@ -26,13 +26,15 @@ public class FinalDoor extends Renderable implements ActionOnTouch {
 
     @Override
     public boolean onHit(Entity e) {
-        if (!Main.isLoading) {
-            Main.isLoading = true;
-            System.out.println("more levels !");
-            Main.currentLevel++;
-            Main.queueReset();
-        }
-        return false;
+		if (e instanceof Player){
+			if (!Main.isLoading) {
+				Main.isLoading = true;
+				System.out.println("more levels !");
+				Main.currentLevel++;
+				Main.queueReset();
+			}
+		} 
+		return false;
     }
 
     @Override

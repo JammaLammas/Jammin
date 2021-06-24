@@ -203,6 +203,7 @@ public class Main {
                     player1.setxVelocity(player1.getxVelocity() + 8 * player1.getWalking());
                 }
             }
+
             // Player 2 shooting: Arrow Keys
             if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
                 Projectile p = new Projectile();
