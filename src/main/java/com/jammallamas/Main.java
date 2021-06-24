@@ -25,11 +25,16 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Main {
 
-    private static final int DOUBLE_TAP_DELAY = 500;
+    private static final int DOUBLE_TAP_DELAY = 1000;
     private static final double GROUND_FRICTION = 0.25;
     private static final double AIR_FRICTION = 0.00;
     private static final long GRAB_COOLDOWN = 200;
-    private static final String[] levels = new String[]{"/testLevel.lvl.gz", "/level2.lvl.gz"};
+    private static final String[] levels = new String[]{
+		"/level1.lvl.gz", 
+		"/level2.lvl.gz",
+		"/level3.lvl.gz",
+		"/level4.lvl.gz",
+	};
     public static int currentLevel = 0;
     public static double cameraX = 0;
     public static double cameraY = 800;
@@ -241,10 +246,17 @@ public class Main {
                 p.setyVelocity(-10);
                 entities.add(p);
             }
+
             // Player 1 throw
             if (key == GLFW_KEY_Y && action == GLFW_PRESS) {
                 if (isGrabbed) {
-                    player2.setxVelocity(20 * getMulRotation());
+					if(getMulRotation() == 0){
+						// Put down in front
+						player2.setX(player2.getX() + player2.getWidth());
+					} else {
+						// Yeet
+						player2.setxVelocity(20 * getMulRotation());
+					}
                     grabTimeout = System.currentTimeMillis() + GRAB_COOLDOWN;
                     isGrabbed = false;
                 }

@@ -10,9 +10,10 @@ p:0:-630:100:600
 // Buttons
 b:500:-300:50:50
 // Button activated bridge
-br:600:-630:100:200
+br:600:-630:100:400
 
-// No end platform
+// End platform
+p:1000:-630:100:300
 
 // Final door
 end:1100:-530:150:100
