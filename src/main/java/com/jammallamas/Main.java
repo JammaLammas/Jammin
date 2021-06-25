@@ -35,6 +35,7 @@ public class Main {
     public static double cameraY = 800;
     public static ArrayList<Entity> entities = new ArrayList<>();
     public static ArrayList<Renderable> platforms = new ArrayList<>();
+    public static Renderable menu = new Platform();
     public static Player player1;
     public static Player player2;
     private static long window;
@@ -123,6 +124,7 @@ public class Main {
     public static boolean isGrabbed = false;
     private static boolean reset = false;
     public static boolean isLoading = false;
+    public static boolean isPaused = false;
 
     private static void init() {
         // Setup an error callback. The default implementation
@@ -154,99 +156,102 @@ public class Main {
 
         // Setup a key callback. It will be called every time a key is pressed, repeated or released.
         glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
-            // Escape key: close
-            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
-                glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
+            // menu key: continue, help, quit
 
-            // Player 1 movement: WASD
+            if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+                isPaused = !isPaused;
+            }
+            if (!isPaused) {
+                // Player 1 movement: WASD
 
-            // D key: walk right if pressed, stop if released
-            if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+                // D key: walk right if pressed, stop if released
+                if (key == GLFW_KEY_D && action == GLFW_PRESS) {
 
-                if (player1.isOnGround() && lastPressed + DOUBLE_TAP_DELAY >= System.currentTimeMillis()) {
-                    player1.setxVelocity(player1.getSpeed() * 5);
+                    if (player1.isOnGround() && lastPressed + DOUBLE_TAP_DELAY >= System.currentTimeMillis()) {
+                        player1.setxVelocity(player1.getSpeed() * 5);
+                        player1.setWalking((byte) 0);
+                    } else {
+                        player1.setWalking((byte) (player1.getWalking() == -1 ? 0 : 1));
+                    }
+                    lastPressed = System.currentTimeMillis();
+                }
+                if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
                     player1.setWalking((byte) 0);
-                } else {
-                    player1.setWalking((byte) (player1.getWalking() == -1 ? 0 : 1));
                 }
-                lastPressed = System.currentTimeMillis();
-            }
-            if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
-                player1.setWalking((byte) 0);
-            }
 
-            // A key: walk left if pressed, stop if released
-            if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-                if (player1.isOnGround() && lastPressedL + DOUBLE_TAP_DELAY >= System.currentTimeMillis()) {
-                    player1.setxVelocity(player1.getSpeed() * -5);
+                // A key: walk left if pressed, stop if released
+                if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+                    if (player1.isOnGround() && lastPressedL + DOUBLE_TAP_DELAY >= System.currentTimeMillis()) {
+                        player1.setxVelocity(player1.getSpeed() * -5);
+                        player1.setWalking((byte) 0);
+                    } else {
+                        player1.setWalking((byte) (player1.getWalking() == -1 ? 0 : -1));
+                    }
+                    lastPressedL = System.currentTimeMillis();
+                }
+                if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
                     player1.setWalking((byte) 0);
-                } else {
-                    player1.setWalking((byte) (player1.getWalking() == -1 ? 0 : -1));
                 }
-                lastPressedL = System.currentTimeMillis();
-            }
-            if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
-                player1.setWalking((byte) 0);
-            }
 
-            // W key: Jump
-            if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
-                if (player1.isOnGround()) {
-                    player1.setyVelocity(25);
+                // W key: Jump
+                if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+                    if (player1.isOnGround()) {
+                        player1.setyVelocity(25);
+                    }
                 }
-            }
 
-            // S key: Dash, with a small dive.
-            if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-                if (!player1.isOnGround()) {
-                    player1.setyVelocity(player1.getyVelocity() - 2);
-                    player1.setxVelocity(player1.getxVelocity() + 8 * player1.getWalking());
+                // S key: Dash, with a small dive.
+                if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+                    if (!player1.isOnGround()) {
+                        player1.setyVelocity(player1.getyVelocity() - 2);
+                        player1.setxVelocity(player1.getxVelocity() + 8 * player1.getWalking());
+                    }
                 }
-            }
 
-            // Player 2 shooting: Arrow Keys
-            if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                Projectile p = new Projectile();
-                p.setY(player2.getY() + player2.getHeight());
-                p.setX(player2.getX() + player2.getWidth() / 2);
-                p.setWidth(2);
-                p.setHeight(5);
-                p.setyVelocity(10);
-                entities.add(p);
-            }
-            if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                Projectile p = new Projectile();
-                p.setY(player2.getY() + player2.getHeight() / 2);
-                p.setX(player2.getX() - 5);
-                p.setWidth(5);
-                p.setHeight(2);
-                p.setxVelocity(-10);
-                entities.add(p);
-            }
-            if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                Projectile p = new Projectile();
-                p.setY(player2.getY() + player2.getHeight() / 2);
-                p.setX(player2.getX() + player2.getWidth());
-                p.setWidth(5);
-                p.setHeight(2);
-                p.setxVelocity(10);
-                entities.add(p);
-            }
-            if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                Projectile p = new Projectile();
-                p.setY(player2.getY());
-                p.setX(player2.getX() + player2.getWidth() / 2);
-                p.setWidth(2);
-                p.setHeight(5);
-                p.setyVelocity(-10);
-                entities.add(p);
-            }
-            // Player 1 throw
-            if (key == GLFW_KEY_Y && action == GLFW_PRESS) {
-                if (isGrabbed) {
-                    player2.setxVelocity(20 * getMulRotation());
-                    grabTimeout = System.currentTimeMillis() + GRAB_COOLDOWN;
-                    isGrabbed = false;
+                // Player 2 shooting: Arrow Keys
+                if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+                    Projectile p = new Projectile();
+                    p.setY(player2.getY() + player2.getHeight());
+                    p.setX(player2.getX() + player2.getWidth() / 2);
+                    p.setWidth(2);
+                    p.setHeight(5);
+                    p.setyVelocity(10);
+                    entities.add(p);
+                }
+                if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+                    Projectile p = new Projectile();
+                    p.setY(player2.getY() + player2.getHeight() / 2);
+                    p.setX(player2.getX() - 5);
+                    p.setWidth(5);
+                    p.setHeight(2);
+                    p.setxVelocity(-10);
+                    entities.add(p);
+                }
+                if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+                    Projectile p = new Projectile();
+                    p.setY(player2.getY() + player2.getHeight() / 2);
+                    p.setX(player2.getX() + player2.getWidth());
+                    p.setWidth(5);
+                    p.setHeight(2);
+                    p.setxVelocity(10);
+                    entities.add(p);
+                }
+                if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+                    Projectile p = new Projectile();
+                    p.setY(player2.getY());
+                    p.setX(player2.getX() + player2.getWidth() / 2);
+                    p.setWidth(2);
+                    p.setHeight(5);
+                    p.setyVelocity(-10);
+                    entities.add(p);
+                }
+                // Player 1 throw
+                if (key == GLFW_KEY_Y && action == GLFW_PRESS) {
+                    if (isGrabbed) {
+                        player2.setxVelocity(20 * getMulRotation());
+                        grabTimeout = System.currentTimeMillis() + GRAB_COOLDOWN;
+                        isGrabbed = false;
+                    }
                 }
             }
         });
@@ -340,6 +345,11 @@ public class Main {
         String data = Utils.loadGzResource(name);
         String[] plats = data.split("\n");
         Button lastButton = null;
+        // menu
+        menu.setX(0);
+        menu.setY(-windowHeight*1.6);
+        menu.setHeight(windowHeight*2);
+        menu.setWidth(windowWidth*2);
         for (String pl : plats) {
             if (pl.trim().length() == 0 || pl.startsWith("//")) {
                 continue;
@@ -426,6 +436,11 @@ public class Main {
         }
     }
 
+    private static void checkState() {
+        if (!isPaused){
+            runGameLogic();
+        }
+    }
     private static void runGameLogic() {
         // Entity movement
         for (Entity e : entities) {
@@ -611,6 +626,14 @@ public class Main {
             doorTexture = 0;
         }
 
+        int menuTexture;
+        try {
+            menuTexture = loadTexture("menu.png");
+        } catch (Exception e) {
+            e.printStackTrace();
+            menuTexture = 0;
+        }
+
         playMusic("boop.ogg");
 
 
@@ -645,25 +668,32 @@ public class Main {
             glEnd();
             glPopMatrix();
             //
-            for (Renderable pl : platforms) {
-                if (pl instanceof Button) {
-                    glColor4f(1, 1, 1, 1);
-                    glBindTexture(GL_TEXTURE_2D, buttonTexture);
-                } else if (pl instanceof FinalDoor) {
-                    glColor4f(1, 1, 1, 1);
-                    glBindTexture(GL_TEXTURE_2D, doorTexture);
-                } else {
-                    glColor4f(0, 0, 0, 0);
-                    glBindTexture(GL_TEXTURE_2D, 0);
-                }
-                if (pl.visible) {
-                    pl.render();
-                }
+            if (isPaused){
+                glColor4f(1, 1, 1, 1);
+                glBindTexture(GL_TEXTURE_2D, menuTexture);
+                menu.render();
             }
-            glBindTexture(GL_TEXTURE_2D, 0);
-            for (Entity e : entities) {
-                if (e.visible) {
-                    e.render();
+            else {
+                for (Renderable pl : platforms) {
+                    if (pl instanceof Button) {
+                        glColor4f(1, 1, 1, 1);
+                        glBindTexture(GL_TEXTURE_2D, buttonTexture);
+                    } else if (pl instanceof FinalDoor) {
+                        glColor4f(1, 1, 1, 1);
+                        glBindTexture(GL_TEXTURE_2D, doorTexture);
+                    } else {
+                        glColor4f(0, 0, 0, 0);
+                        glBindTexture(GL_TEXTURE_2D, 0);
+                    }
+                    if (pl.visible) {
+                        pl.render();
+                    }
+                }
+                glBindTexture(GL_TEXTURE_2D, 0);
+                for (Entity e : entities) {
+                    if (e.visible) {
+                        e.render();
+                    }
                 }
             }
             glPopMatrix();
@@ -672,7 +702,7 @@ public class Main {
             // Poll for window events. The key callback above will only be
             // invoked during this call.
             glfwPollEvents();
-            runGameLogic();
+            checkState();
         }
     }
 
