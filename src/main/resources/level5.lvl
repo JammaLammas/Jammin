@@ -1,0 +1,43 @@
+// Format:
+// t:x:y:h:w
+
+
+// Levels
+
+// Start Platform
+p:0:-630:100:900
+
+// Buttons
+b:500:-300:50:50
+// Button activated bridge - used as a stair
+br:700:-530:200:200
+
+// Yeeting Platform
+p:900:-330:200:400
+
+// Enemy on yeeting platform
+bite:1100:-100:150:75
+
+// Smol platform
+p:1600:-430:30:75
+
+// End platform
+p:1900:-630:100:400
+
+// Final door
+end:2050:-530:150:100
+
+
+// Death planes:
+
+// Death plane - top
+d:-3000:3000:100:6000
+
+// Death plane - bottom
+d:-3000:-1200:100:6000
+
+// Death plane - right
+d:3000:-1200:4200:100
+
+// Death plane - left
+d:-3000:-1200:4200:100
