@@ -2,9 +2,14 @@ package com.jammallamas;
 
 public class Bridge extends Platform implements ButtonLinkable {
     public Bridge() {
-        visible = false;
-        collidable = false;
+        this(false, false);
     }
+
+	public Bridge(boolean isVisible, boolean isCollidable) {
+        visible = isVisible;
+        collidable = isCollidable;
+    }
+
 
     @Override
     public void onButton() {

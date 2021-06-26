@@ -42,12 +42,13 @@ public class Main {
     private static final long GRAB_COOLDOWN = 200;
     private static final String[] levels = new String[]{
 //		"/testLevel.lvl.gz",
-            "/level1.lvl.gz",
-            "/level2.lvl.gz",
-            "/level3.lvl.gz",
-            "/level4.lvl.gz",
-            "/level5.lvl.gz",
-            "/level6.lvl.gz",
+		"/level1.lvl.gz",
+		"/level2.lvl.gz",
+		"/level3.lvl.gz",
+		"/level4.lvl.gz",
+		"/level5.lvl.gz",
+		"/level6.lvl.gz",
+		"/level7.lvl.gz",
     };
     public static int currentLevel = 0;
     public static double cameraX = 0;
@@ -475,6 +476,25 @@ public class Main {
                 }
             } else if (coords.length == 5 && coords[0].equals("br")) {
                 Bridge p = new Bridge();
+                try {
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2]));
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2])); // duplicated because lastx and lasty
+                    p.setHeight(Double.parseDouble(coords[3]));
+                    p.setWidth(Double.parseDouble(coords[4]));
+                    if (lastButton == null) {
+                        System.err.println("Bridge was tried to be created but no button was found ! " +
+                                "Skipping for line : " + pl);
+                        continue;
+                    }
+                    platforms.add(p);
+                    lastButton.setAction(p);
+                } catch (NumberFormatException e) {
+                    System.err.println("Bad number for line " + pl + "skipping");
+                }
+            } else if (coords.length == 5 && coords[0].equals("bro")) {
+                Bridge p = new Bridge(true, true);
                 try {
                     p.setX(Double.parseDouble(coords[1]));
                     p.setY(Double.parseDouble(coords[2]));
