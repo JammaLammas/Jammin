@@ -1,14 +1,17 @@
 package com.jammallamas;
 
-public abstract class Renderable {
+import java.io.Serializable;
+
+public abstract class Renderable implements Serializable {
+    private static final long serialVersionUID = -38362767932425980L;
+    public boolean visible = true;
+    public boolean collidable = true;
     private double last_x;
     private double last_y;
     private double x;
     private double y;
     private double height;
     private double width;
-    public boolean visible = true;
-    public boolean collidable = true;
 
     public double getY() {
         return y;

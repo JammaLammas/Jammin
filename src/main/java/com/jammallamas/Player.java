@@ -1,8 +1,11 @@
 package com.jammallamas;
 
+import java.io.Serializable;
+
 import static org.lwjgl.opengl.GL11.*;
 
-public class Player extends Entity {
+public class Player extends Entity implements Serializable {
+    private static final long serialVersionUID = 3143011099839440272L;
     private byte walking = 0;
 
     @Override

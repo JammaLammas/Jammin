@@ -1,5 +1,7 @@
 package com.jammallamas;
 
+import com.jammallamas.network.GameData;
+import com.jammallamas.network.NetworkManager;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.openal.*;
@@ -9,6 +11,9 @@ import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.libc.LibCStdlib;
 
+import javax.swing.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
@@ -25,19 +30,25 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Main {
 
+    public static final ArrayList<Entity> forDeletion = new ArrayList<>();
+    public static final byte
+            KEY_UP = 0b1,
+            KEY_LEFT = 0b10,
+            KEY_RIGHT = 0b100,
+            KEY_DOWN = 0b1000;
     private static final int DOUBLE_TAP_DELAY = 1000;
     private static final double GROUND_FRICTION = 0.25;
     private static final double AIR_FRICTION = 0.00;
     private static final long GRAB_COOLDOWN = 200;
     private static final String[] levels = new String[]{
 //		"/testLevel.lvl.gz",
-		"/level1.lvl.gz",
-		"/level2.lvl.gz",
-		"/level3.lvl.gz",
-		"/level4.lvl.gz",
-		"/level5.lvl.gz",
-		"/level6.lvl.gz",
-	};
+            "/level1.lvl.gz",
+            "/level2.lvl.gz",
+            "/level3.lvl.gz",
+            "/level4.lvl.gz",
+            "/level5.lvl.gz",
+            "/level6.lvl.gz",
+    };
     public static int currentLevel = 0;
     public static double cameraX = 0;
     public static double cameraY = 800;
@@ -46,6 +57,10 @@ public class Main {
     public static Renderable menu = new Platform();
     public static Player player1;
     public static Player player2;
+    public static long grabTimeout = 0;
+    public static boolean isGrabbed = false;
+    public static boolean isLoading = false;
+    public static boolean isPaused = false;
     private static long window;
     private static int windowWidth;
     private static int windowHeight;
@@ -54,7 +69,8 @@ public class Main {
     private static long context;
     private static long lastPressed = 0;
     private static long lastPressedL = 0;
-    public static final ArrayList<Entity> forDeletion = new ArrayList<>();
+    private static boolean reset = false;
+    private static GameData gd = null;
 
     public static void main(String[] args) {
         try {
@@ -128,11 +144,44 @@ public class Main {
         }).start();
     }
 
-    public static long grabTimeout = 0;
-    public static boolean isGrabbed = false;
-    private static boolean reset = false;
-    public static boolean isLoading = false;
-    public static boolean isPaused = false;
+    public static void handleKeys(int bits) {
+        if ((bits & KEY_UP) == KEY_UP) {
+            Projectile p = new Projectile();
+            p.setY(player2.getY() + player2.getHeight());
+            p.setX(player2.getX() + player2.getWidth() / 2);
+            p.setWidth(2);
+            p.setHeight(5);
+            p.setyVelocity(10);
+            entities.add(p);
+        }
+        if ((bits & KEY_LEFT) == KEY_LEFT) {
+            Projectile p = new Projectile();
+            p.setY(player2.getY() + player2.getHeight() / 2);
+            p.setX(player2.getX() - 5);
+            p.setWidth(5);
+            p.setHeight(2);
+            p.setxVelocity(-10);
+            entities.add(p);
+        }
+        if ((bits & KEY_RIGHT) == KEY_RIGHT) {
+            Projectile p = new Projectile();
+            p.setY(player2.getY() + player2.getHeight() / 2);
+            p.setX(player2.getX() + player2.getWidth());
+            p.setWidth(5);
+            p.setHeight(2);
+            p.setxVelocity(10);
+            entities.add(p);
+        }
+        if ((bits & KEY_DOWN) == KEY_DOWN) {
+            Projectile p = new Projectile();
+            p.setY(player2.getY());
+            p.setX(player2.getX() + player2.getWidth() / 2);
+            p.setWidth(2);
+            p.setHeight(5);
+            p.setyVelocity(-10);
+            entities.add(p);
+        }
+    }
 
     private static void init() {
         // Setup an error callback. The default implementation
@@ -216,57 +265,87 @@ public class Main {
                     }
                 }
 
-            // Player 2 shooting: Arrow Keys
-            if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                Projectile p = new Projectile();
-                p.setY(player2.getY() + player2.getHeight());
-                p.setX(player2.getX() + player2.getWidth() / 2);
-                p.setWidth(2);
-                p.setHeight(5);
-                p.setyVelocity(10);
-                entities.add(p);
-            }
-            if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                Projectile p = new Projectile();
-                p.setY(player2.getY() + player2.getHeight() / 2);
-                p.setX(player2.getX() - 5);
-                p.setWidth(5);
-                p.setHeight(2);
-                p.setxVelocity(-10);
-                entities.add(p);
-            }
-            if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                Projectile p = new Projectile();
-                p.setY(player2.getY() + player2.getHeight() / 2);
-                p.setX(player2.getX() + player2.getWidth());
-                p.setWidth(5);
-                p.setHeight(2);
-                p.setxVelocity(10);
-                entities.add(p);
-            }
-            if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                Projectile p = new Projectile();
-                p.setY(player2.getY());
-                p.setX(player2.getX() + player2.getWidth() / 2);
-                p.setWidth(2);
-                p.setHeight(5);
-                p.setyVelocity(-10);
-                entities.add(p);
-            }
+                // Player 2 shooting: Arrow Keys
+                int changedArrows = 0;
+                if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+                    Projectile p = new Projectile();
+                    p.setY(player2.getY() + player2.getHeight());
+                    p.setX(player2.getX() + player2.getWidth() / 2);
+                    p.setWidth(2);
+                    p.setHeight(5);
+                    p.setyVelocity(10);
+                    entities.add(p);
+                    changedArrows |= KEY_UP;
+                }
+                if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+                    Projectile p = new Projectile();
+                    p.setY(player2.getY() + player2.getHeight() / 2);
+                    p.setX(player2.getX() - 5);
+                    p.setWidth(5);
+                    p.setHeight(2);
+                    p.setxVelocity(-10);
+                    entities.add(p);
+                    changedArrows |= KEY_LEFT;
+                }
+                if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+                    Projectile p = new Projectile();
+                    p.setY(player2.getY() + player2.getHeight() / 2);
+                    p.setX(player2.getX() + player2.getWidth());
+                    p.setWidth(5);
+                    p.setHeight(2);
+                    p.setxVelocity(10);
+                    entities.add(p);
+                    changedArrows |= KEY_RIGHT;
+                }
+                if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+                    Projectile p = new Projectile();
+                    p.setY(player2.getY());
+                    p.setX(player2.getX() + player2.getWidth() / 2);
+                    p.setWidth(2);
+                    p.setHeight(5);
+                    p.setyVelocity(-10);
+                    entities.add(p);
+                    changedArrows |= KEY_DOWN;
+                }
+                if (changedArrows != 0 && NetworkManager.connected && !NetworkManager.isHosting) {
+                    NetworkManager.sendKeys(changedArrows);
+                }
 
-            // Player 1 throw
-            if (key == GLFW_KEY_Y && action == GLFW_PRESS) {
-                if (isGrabbed) {
-					if(getMulRotation() == 0){
-						// Put down in front
-						player2.setX(player2.getX() + player2.getWidth());
-					} else {
-						// Yeet
-						player2.setxVelocity(20 * getMulRotation());
-					}
+                // Player 1 throw
+                if (key == GLFW_KEY_Y && action == GLFW_PRESS) {
+                    if (isGrabbed) {
+                        if (getMulRotation() == 0) {
+                            // Put down in front
+                            player2.setX(player2.getX() + player2.getWidth());
+                        } else {
+                            // Yeet
+                            player2.setxVelocity(20 * getMulRotation());
+                        }
                         grabTimeout = System.currentTimeMillis() + GRAB_COOLDOWN;
                         isGrabbed = false;
                     }
+                }
+                if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+                    String address = JOptionPane.showInputDialog(null, "Insert host's ip separated by a colon (ex : 127.0.0.1:25565)", "Connection", JOptionPane.INFORMATION_MESSAGE);
+                    new Thread(() -> {
+                        try {
+                            NetworkManager.connectToServer(InetAddress.getByName(address.split(":")[0]), Integer.parseInt(address.split(":")[1]));
+                        } catch (UnknownHostException e) {
+                            JOptionPane.showMessageDialog(null, "Error ! Bad ip address");
+                        } catch (NumberFormatException e) {
+                            JOptionPane.showMessageDialog(null, "Error ! Bad port !");
+                        }
+                    }).start();
+                }
+                if (key == GLFW_KEY_H && action == GLFW_PRESS) {
+                    String address = JOptionPane.showInputDialog(null, "Insert the port you want to host at", "Hosting", JOptionPane.INFORMATION_MESSAGE);
+                    new Thread(() -> {
+                        try {
+                            NetworkManager.openServer(Integer.parseInt(address));
+                        } catch (NumberFormatException e) {
+                            JOptionPane.showMessageDialog(null, "Error ! Bad port !");
+                        }
+                    }).start();
                 }
             }
         });
@@ -487,10 +566,33 @@ public class Main {
     }
 
     private static void checkState() {
-        if (!isPaused){
+        if (gd != null) {
+            System.out.println("updating ! " + gd.player1.getX());
+            currentLevel = gd.currentLevel;
+            cameraX = gd.cameraX;
+            cameraY = gd.cameraY;
+            entities = gd.entities;
+            platforms = gd.platforms;
+            menu = gd.menu;
+            player1 = gd.player1;
+            player2 = gd.player2;
+            grabTimeout = gd.grabTimeout;
+            isGrabbed = gd.isGrabbed;
+            isLoading = gd.isLoading;
+            isPaused = gd.isPaused;
+
+            gd = null;
+            return;
+        }
+        if (!isPaused) {
             runGameLogic();
         }
+        //update game state
+        if (NetworkManager.connected && NetworkManager.isHosting) {
+            NetworkManager.sendGameData(new GameData(currentLevel, cameraX, cameraY, entities, platforms, menu, player1, player2, grabTimeout, isGrabbed, isLoading, isPaused));
+        }
     }
+
     private static void runGameLogic() {
         // Entity movement
         for (Entity e : entities) {
@@ -792,8 +894,7 @@ public class Main {
                 glVertex2d(menu.getWidth(), 0);
                 glEnd();
                 glPopMatrix();
-            }
-            else {
+            } else {
                 for (Renderable pl : platforms) {
                     if (pl instanceof Button) {
                         glColor4f(1, 1, 1, 1);
@@ -890,4 +991,9 @@ public class Main {
         loadLevel(levels[currentLevel]);
         isLoading = false;
     }
+
+    public static void triggerUpdate(GameData gameData) {
+        gd = gameData;
+    }
+
 }
