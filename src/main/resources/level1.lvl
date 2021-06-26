@@ -18,9 +18,6 @@ p:1000:-630:100:300
 // Final door
 end:1100:-530:150:100
 
-// Test biter
-bite:1100:-530:50:50
-
 
 // Death planes:
 

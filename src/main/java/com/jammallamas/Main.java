@@ -215,14 +215,14 @@ public class Main {
         glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
             // menu key: continue, help, quit
 
-            if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+            if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS && (!NetworkManager.connected || NetworkManager.isHosting)) {
                 isPaused = !isPaused;
             }
             if (!isPaused) {
                 // Player 1 movement: WASD
 
                 // D key: walk right if pressed, stop if released
-                if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+                if (key == GLFW_KEY_D && action == GLFW_PRESS && (!NetworkManager.connected || NetworkManager.isHosting)) {
 
                     if (player1.isOnGround() && lastPressed + DOUBLE_TAP_DELAY >= System.currentTimeMillis()) {
                         player1.setxVelocity(player1.getSpeed() * 5);
@@ -232,12 +232,12 @@ public class Main {
                     }
                     lastPressed = System.currentTimeMillis();
                 }
-                if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
+                if (key == GLFW_KEY_D && action == GLFW_RELEASE && (!NetworkManager.connected || NetworkManager.isHosting)) {
                     player1.setWalking((byte) 0);
                 }
 
                 // A key: walk left if pressed, stop if released
-                if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+                if (key == GLFW_KEY_A && action == GLFW_PRESS && (!NetworkManager.connected || NetworkManager.isHosting)) {
                     if (player1.isOnGround() && lastPressedL + DOUBLE_TAP_DELAY >= System.currentTimeMillis()) {
                         player1.setxVelocity(player1.getSpeed() * -5);
                         player1.setWalking((byte) 0);
@@ -250,15 +250,15 @@ public class Main {
                     player1.setWalking((byte) 0);
                 }
 
-                // W key: Jump
-                if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+                // Space key: Jump
+                if (key == GLFW_KEY_SPACE && action == GLFW_PRESS && (!NetworkManager.connected || NetworkManager.isHosting)) {
                     if (player1.isOnGround()) {
                         player1.setyVelocity(25);
                     }
                 }
 
                 // S key: Dash, with a small dive.
-                if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+                if (key == GLFW_KEY_S && action == GLFW_PRESS && (!NetworkManager.connected || NetworkManager.isHosting)) {
                     if (!player1.isOnGround()) {
                         player1.setyVelocity(player1.getyVelocity() - 2);
                         player1.setxVelocity(player1.getxVelocity() + 8 * player1.getWalking());
@@ -267,7 +267,7 @@ public class Main {
 
                 // Player 2 shooting: Arrow Keys
                 int changedArrows = 0;
-                if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+                if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT) && (!NetworkManager.connected || !NetworkManager.isHosting)) {
                     Projectile p = new Projectile();
                     p.setY(player2.getY() + player2.getHeight());
                     p.setX(player2.getX() + player2.getWidth() / 2);
@@ -277,7 +277,7 @@ public class Main {
                     entities.add(p);
                     changedArrows |= KEY_UP;
                 }
-                if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+                if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT) && (!NetworkManager.connected || !NetworkManager.isHosting)) {
                     Projectile p = new Projectile();
                     p.setY(player2.getY() + player2.getHeight() / 2);
                     p.setX(player2.getX() - 5);
@@ -287,7 +287,7 @@ public class Main {
                     entities.add(p);
                     changedArrows |= KEY_LEFT;
                 }
-                if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+                if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT) && (!NetworkManager.connected || !NetworkManager.isHosting)) {
                     Projectile p = new Projectile();
                     p.setY(player2.getY() + player2.getHeight() / 2);
                     p.setX(player2.getX() + player2.getWidth());
@@ -297,7 +297,7 @@ public class Main {
                     entities.add(p);
                     changedArrows |= KEY_RIGHT;
                 }
-                if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+                if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT) && (!NetworkManager.connected || !NetworkManager.isHosting)) {
                     Projectile p = new Projectile();
                     p.setY(player2.getY());
                     p.setX(player2.getX() + player2.getWidth() / 2);
@@ -312,7 +312,7 @@ public class Main {
                 }
 
                 // Player 1 throw
-                if (key == GLFW_KEY_Y && action == GLFW_PRESS) {
+                if (key == GLFW_KEY_Y && action == GLFW_PRESS && (!NetworkManager.connected || NetworkManager.isHosting)) {
                     if (isGrabbed) {
                         if (getMulRotation() == 0) {
                             // Put down in front
@@ -325,7 +325,7 @@ public class Main {
                         isGrabbed = false;
                     }
                 }
-                if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+                if (key == GLFW_KEY_C && action == GLFW_PRESS && !NetworkManager.connected) {
                     String address = JOptionPane.showInputDialog(null, "Insert host's ip separated by a colon (ex : 127.0.0.1:25565)", "Connection", JOptionPane.INFORMATION_MESSAGE);
                     new Thread(() -> {
                         try {
@@ -337,7 +337,7 @@ public class Main {
                         }
                     }).start();
                 }
-                if (key == GLFW_KEY_H && action == GLFW_PRESS) {
+                if (key == GLFW_KEY_H && action == GLFW_PRESS && !NetworkManager.connected) {
                     String address = JOptionPane.showInputDialog(null, "Insert the port you want to host at", "Hosting", JOptionPane.INFORMATION_MESSAGE);
                     new Thread(() -> {
                         try {
@@ -567,7 +567,6 @@ public class Main {
 
     private static void checkState() {
         if (gd != null) {
-            System.out.println("updating ! " + gd.player1.getX());
             currentLevel = gd.currentLevel;
             cameraX = gd.cameraX;
             cameraY = gd.cameraY;
