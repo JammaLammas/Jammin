@@ -26,13 +26,13 @@ p:810:-630:100:400
 bounce:1290:-600:50:200
 
 // Button
-b:1770:-550:50:50
+b:1770:-600:50:50
 
 // Blocking Vertical Bridge
 bro:1520:-400:400:50
 
 // Second last platform
-p:1620:-650:100:200
+p:1620:-700:100:200
 
 // End platform
 p:1820:-600:100:400
