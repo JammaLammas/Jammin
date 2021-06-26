@@ -4,18 +4,18 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class Biter extends Entity implements ActionOnTouch {
     private boolean isChasing = false;
-    private final double AGGRO_RANGE = 100;
+    private final double AGGRO_RANGE = 350;
     private final double MAX_RUN = 20;
     private final double MAX_WALK = 10;
     private final double WALK_ACCEL = 1;
-    private final double CHASE_ACCEL = 3;
+    private final double CHASE_ACCEL = 4;
     private double accel = WALK_ACCEL;
 
     private boolean checkForPlayer(Entity player) {
-        return player.getX() + player.getWidth() > this.getX() - this.AGGRO_RANGE
-                && player.getX() < this.getX() + this.getWidth() + this.AGGRO_RANGE
-                && player.getX() + player.getHeight() > this.getY() - this.AGGRO_RANGE
-                && player.getX() < this.getY() + this.getHeight() + this.AGGRO_RANGE;
+        return player.getX() + player.getWidth() >= this.getX() - this.AGGRO_RANGE
+                && player.getX() <= this.getX() + this.getWidth() + this.AGGRO_RANGE
+                && player.getY() + player.getHeight() > this.getY() - this.AGGRO_RANGE
+                && player.getY() < this.getY() + this.getHeight() + this.AGGRO_RANGE;
     }
 
     public void setChase(Entity player) {
@@ -59,7 +59,6 @@ public class Biter extends Entity implements ActionOnTouch {
 
     @Override
     public boolean onHit(Entity e) {
-        System.out.println("OW ! that hurts");
         if (e == Main.player1) {
             Main.queueReset(); //reset ?
         } else if (e == Main.player2) {
