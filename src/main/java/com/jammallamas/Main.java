@@ -708,6 +708,38 @@ public class Main {
             menuTexture = 0;
         }
 
+        int platformTexture;
+        try {
+            platformTexture = loadTexture("platform.png");
+        } catch (Exception e) {
+            e.printStackTrace();
+            platformTexture = 0;
+        }
+
+        int springTexture;
+        try {
+            springTexture = loadTexture("spring.png");
+        } catch (Exception e) {
+            e.printStackTrace();
+            springTexture = 0;
+        }
+
+        int p1Texture;
+        try {
+            p1Texture = loadTexture("p1.png");
+        } catch (Exception e) {
+            e.printStackTrace();
+            p1Texture = 0;
+        }
+
+        int p2Texture;
+        try {
+            p2Texture = loadTexture("p2.png");
+        } catch (Exception e) {
+            e.printStackTrace();
+            p2Texture = 0;
+        }
+
         playMusic("boop.ogg");
 
 
@@ -769,6 +801,13 @@ public class Main {
                     } else if (pl instanceof FinalDoor) {
                         glColor4f(1, 1, 1, 1);
                         glBindTexture(GL_TEXTURE_2D, doorTexture);
+                    } else if (pl instanceof BouncyPlatform) {
+                        glColor4f(1, 1, 1, 1);
+                        glBindTexture(GL_TEXTURE_2D, springTexture);
+                    } else if (pl instanceof Platform) {
+                        //place anything based on platforms before this if
+                        glColor4f(1, 1, 1, 1);
+                        glBindTexture(GL_TEXTURE_2D, platformTexture);
                     } else {
                         glColor4f(0, 0, 0, 0);
                         glBindTexture(GL_TEXTURE_2D, 0);
@@ -778,8 +817,16 @@ public class Main {
                     }
                 }
                 glBindTexture(GL_TEXTURE_2D, 0);
+                glColor4f(1, 1, 1, 1);
                 for (Entity e : entities) {
                     if (e.visible) {
+                        if (e == player2) {
+                            glBindTexture(GL_TEXTURE_2D, p2Texture);
+                        } else if (e == player1) {
+                            glBindTexture(GL_TEXTURE_2D, p1Texture);
+                        } else {
+                            glBindTexture(GL_TEXTURE_2D, 0);
+                        }
                         e.render();
                     }
                 }
