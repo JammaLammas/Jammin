@@ -42,13 +42,13 @@ public class Main {
     private static final long GRAB_COOLDOWN = 200;
     private static final String[] levels = new String[]{
 //		"/testLevel.lvl.gz",
-//		"/level1.lvl.gz",
-//		"/level2.lvl.gz",
-//		"/level3.lvl.gz",
-//		"/level4.lvl.gz",
-//		"/level5.lvl.gz",
-//		"/level6.lvl.gz",
-//		"/level7.lvl.gz",
+		"/level1.lvl.gz",
+		"/level2.lvl.gz",
+		"/level3.lvl.gz",
+		"/level4.lvl.gz",
+		"/level5.lvl.gz",
+		"/level6.lvl.gz",
+		"/level7.lvl.gz",
 		"/level8.lvl.gz",
     };
     public static int currentLevel = 0;
@@ -257,7 +257,7 @@ public class Main {
                 }
 
                 // Space key: Jump
-                if (key == GLFW_KEY_SPACE && action == GLFW_PRESS && (!NetworkManager.connected || NetworkManager.isHosting)) {
+                if ((key == GLFW_KEY_SPACE || key == GLFW_KEY_W) && action == GLFW_PRESS && (!NetworkManager.connected || NetworkManager.isHosting)) {
                     if (player1.isOnGround()) {
                         player1.setyVelocity(25);
                     }
