@@ -6,6 +6,8 @@ import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 public final class NetworkManager {
     public static boolean connected = false;
@@ -41,8 +43,7 @@ public final class NetworkManager {
                     try {
                         int id = Integer.parseInt(String.valueOf(received.charAt(0)));
                         if (id == 2) {
-                            int bits = Integer.parseInt(received.substring(1));
-                            Main.handleKeys(bits);
+                            Main.bits = Integer.parseInt(received.substring(1));
                         }
                     } catch (NumberFormatException e) {
                         System.out.println("Bad id ! ignoring !");
@@ -78,10 +79,14 @@ public final class NetworkManager {
         ByteArrayOutputStream ba = new ByteArrayOutputStream(4096);
         ba.write('1');
         try {
-            new ObjectOutputStream(ba).writeObject(gd);
+            GZIPOutputStream gos = new GZIPOutputStream(ba);
+            ObjectOutputStream oos = new ObjectOutputStream(gos);
+            oos.writeObject(gd);
+            oos.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println(ba.size());
         DatagramPacket sent = new DatagramPacket(ba.toByteArray(), ba.toByteArray().length, pAddress, pPort);
         try {
             //System.out.println("sending to " + pAddress + ":"+pPort);
@@ -117,7 +122,7 @@ public final class NetworkManager {
                     try {
                         int id = Integer.parseInt(String.valueOf(received.charAt(0)));
                         if (id == 1) {
-                            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(packet.getData(), 1, packet.getLength() - 1));
+                            ObjectInputStream ois = new ObjectInputStream(new GZIPInputStream(new ByteArrayInputStream(packet.getData(), 1, packet.getLength() - 1)));
                             try {
                                 GameData gd = ((GameData) ois.readObject());
                                 Main.triggerUpdate(gd);

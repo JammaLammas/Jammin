@@ -63,6 +63,7 @@ public class Main {
     public static boolean isGrabbed = false;
     public static boolean isLoading = false;
     public static boolean isPaused = false;
+    public static int bits;
     private static long window;
     private static int windowWidth;
     private static int windowHeight;
@@ -147,6 +148,9 @@ public class Main {
     }
 
     public static void handleKeys(int bits) {
+        if (bits == 0) {
+            return;
+        }
         if ((bits & KEY_UP) == KEY_UP) {
             Projectile p = new Projectile();
             p.setY(player2.getY() + player2.getHeight());
@@ -588,28 +592,27 @@ public class Main {
 
     private static void checkState() {
         if (gd != null) {
-            currentLevel = gd.currentLevel;
-            cameraX = gd.cameraX;
-            cameraY = gd.cameraY;
+            cameraX = gd.player1.getX() - 300;
+            cameraY = gd.player1.getY() + 800;
             entities = gd.entities;
             platforms = gd.platforms;
-            menu = gd.menu;
             player1 = gd.player1;
             player2 = gd.player2;
             grabTimeout = gd.grabTimeout;
             isGrabbed = gd.isGrabbed;
-            isLoading = gd.isLoading;
             isPaused = gd.isPaused;
 
             gd = null;
             return;
         }
         if (!isPaused) {
+            handleKeys(bits);
+            bits = 0;
             runGameLogic();
         }
         //update game state
         if (NetworkManager.connected && NetworkManager.isHosting) {
-            NetworkManager.sendGameData(new GameData(currentLevel, cameraX, cameraY, entities, platforms, menu, player1, player2, grabTimeout, isGrabbed, isLoading, isPaused));
+            NetworkManager.sendGameData(new GameData(entities, platforms, player1, player2, grabTimeout, isGrabbed, isPaused));
         }
     }
 

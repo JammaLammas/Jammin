@@ -3,6 +3,8 @@ package com.jammallamas;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Projectile extends Entity implements ActionOnTouch {
+    private static final long serialVersionUID = 4448422656240288634L;
+
     @Override
     public void render() {
         glPushMatrix();
@@ -25,7 +27,6 @@ public class Projectile extends Entity implements ActionOnTouch {
 
     public boolean onHit(Entity e) {
         //hit an entity
-        //TODO damage ?
         return true; //destroy self
     }
 }
