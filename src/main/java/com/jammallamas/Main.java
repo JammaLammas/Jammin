@@ -36,7 +36,7 @@ public class Main {
             KEY_LEFT = 0b10,
             KEY_RIGHT = 0b100,
             KEY_DOWN = 0b1000;
-    private static final int DOUBLE_TAP_DELAY = 1000;
+    private static final int DOUBLE_TAP_DELAY = 300;
     private static final double GROUND_FRICTION = 0.25;
     private static final double AIR_FRICTION = 0.00;
     private static final long GRAB_COOLDOWN = 200;
