@@ -1,0 +1,53 @@
+// Format:
+// t:x:y:h:w
+
+// p = platform
+// b = button
+// br = bridge (initially off)
+// bro = bridge (initially on)
+// end = door
+// bite = biter (no drop)
+// dropBite = biter (drop)
+// bounce = bounci (bounci)
+
+
+// Levels
+
+// Start Platform
+p:0:-630:100:400
+
+// Bouncy 1
+bounce:550:-600:50:150
+
+// Platform 1
+p:850:-630:100:400
+
+// Bouncy 2
+bounce:1350:-600:50:200
+
+// Button
+b:1700:-600:50:50
+
+// Blocking Vertical Bridge
+bro:1600:-400:400:50
+
+// End platform
+p:1750:-600:100:400
+
+// Final door
+end:1900:-500:150:100
+
+
+// Death planes:
+
+// Death plane - top
+d:-3000:3000:100:6000
+
+// Death plane - bottom
+d:-3000:-1200:100:6000
+
+// Death plane - right
+d:3000:-1200:4200:100
+
+// Death plane - left
+d:-3000:-1200:4200:100
