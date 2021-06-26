@@ -449,6 +449,20 @@ public class Main {
                 } catch (NumberFormatException e) {
                     System.err.println("Bad number for line " + pl + "skipping");
                 }
+            } else if (coords.length == 5 && coords[0].equals("dropBite")) {
+                Biter p = new Biter();
+                try {
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2]));
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2])); // duplicated because lastx and lasty
+                    p.setHeight(Double.parseDouble(coords[3]));
+                    p.setWidth(Double.parseDouble(coords[4]));
+                    p.setDropsEdges(true);
+                    entities.add(p);
+                } catch (NumberFormatException e) {
+                    System.err.println("Bad number for line " + pl + "skipping");
+                }
             } else {
                 //uh uh
                 System.err.println("this line " + pl + " is invalid ! skipping");
@@ -760,6 +774,27 @@ public class Main {
             glfwPollEvents();
             checkState();
         }
+    }
+
+    public static Renderable getPlatformAt(double x, double y) {
+        Renderable r = new Renderable() {
+            @Override
+            public void render() {
+                //noop
+            }
+        };
+        r.setX(x);
+        r.setY(y);
+        r.setHeight(1);
+        r.setWidth(1);
+        for (Renderable p : platforms) {
+            if (p.collidable) {
+                if (Utils.intersects(p, r)) {
+                    return p;
+                }
+            }
+        }
+        return null;
     }
 
     private static void resetLevel() {

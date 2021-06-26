@@ -10,6 +10,7 @@ public class Biter extends Entity implements ActionOnTouch {
     private final double WALK_ACCEL = 1;
     private final double CHASE_ACCEL = 4;
     private double accel = WALK_ACCEL;
+    private boolean dropsEdges = false;
 
     private boolean checkForPlayer(Entity player) {
         return player.getX() + player.getWidth() >= this.getX() - this.AGGRO_RANGE
@@ -55,6 +56,12 @@ public class Biter extends Entity implements ActionOnTouch {
         else this.accel = WALK_ACCEL;
         if (this.getX() > player.getX()) this.accel *= -1;
         else this.accel = Math.abs(this.accel);
+        if (Main.getPlatformAt(getX() + this.accel, getY() - 1) == null) {
+            //uh uh
+            if (!dropsEdges) {
+                this.accel = 0; //let's not jump off
+            }
+        }
     }
 
     @Override
@@ -79,4 +86,11 @@ public class Biter extends Entity implements ActionOnTouch {
         return false;
     }
 
+    public boolean isDropsEdges() {
+        return dropsEdges;
+    }
+
+    public void setDropsEdges(boolean dropsEdges) {
+        this.dropsEdges = dropsEdges;
+    }
 }
