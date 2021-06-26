@@ -17,25 +17,28 @@
 p:0:-630:100:400
 
 // Bouncy 1
-bounce:550:-600:50:150
+bounce:530:-600:50:150
 
 // Platform 1
-p:850:-630:100:400
+p:810:-630:100:400
 
 // Bouncy 2
-bounce:1350:-600:50:200
+bounce:1290:-600:50:200
 
 // Button
-b:1700:-600:50:50
+b:1770:-550:50:50
 
 // Blocking Vertical Bridge
-bro:1600:-400:400:50
+bro:1520:-400:400:50
+
+// Second last platform
+p:1620:-650:100:200
 
 // End platform
-p:1750:-600:100:400
+p:1820:-600:100:400
 
 // Final door
-end:1900:-500:150:100
+end:1970:-500:150:100
 
 
 // Death planes:
