@@ -2,7 +2,7 @@ package com.jammallamas;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class Biter extends Entity {
+public class Biter extends Entity implements ActionOnTouch {
     private boolean isChasing = false;
     private final double AGGRO_RANGE = 100;
     private final double MAX_RUN = 20;
@@ -13,21 +13,21 @@ public class Biter extends Entity {
 
     private boolean checkForPlayer(Entity player) {
         return player.getX() + player.getWidth() > this.getX() - this.AGGRO_RANGE
-        && player.getX() < this.getX() + this.getWidth() + this.AGGRO_RANGE
-        && player.getX() + player.getHeight() > this.getY() - this.AGGRO_RANGE
-        && player.getX() < this.getY() + this.getHeight() + this.AGGRO_RANGE;
-    }
-
-    public void setAccel(Entity player){
-        if (this.isChasing) this.accel = CHASE_ACCEL;
-        else this.accel = WALK_ACCEL;
-        if (this.getX() < player.getX()) this.accel *= -1;
-        else this.accel = Math.abs(this.accel);
+                && player.getX() < this.getX() + this.getWidth() + this.AGGRO_RANGE
+                && player.getX() + player.getHeight() > this.getY() - this.AGGRO_RANGE
+                && player.getX() < this.getY() + this.getHeight() + this.AGGRO_RANGE;
     }
 
     public void setChase(Entity player) {
-        if (this.checkForPlayer(player)) this.isChasing = true;
-        else this.isChasing = false;
+        this.isChasing = this.checkForPlayer(player);
+    }
+
+    public boolean isChasing() {
+        return isChasing;
+    }
+
+    public double getAccel() {
+        return accel;
     }
 
     @Override
@@ -49,4 +49,35 @@ public class Biter extends Entity {
         glEnd();
         glPopMatrix();
     }
+
+    public void setAccel(Entity player) {
+        if (this.isChasing) this.accel = CHASE_ACCEL;
+        else this.accel = WALK_ACCEL;
+        if (this.getX() > player.getX()) this.accel *= -1;
+        else this.accel = Math.abs(this.accel);
+    }
+
+    @Override
+    public boolean onHit(Entity e) {
+        System.out.println("OW ! that hurts");
+        if (e == Main.player1) {
+            Main.queueReset(); //reset ?
+        } else if (e == Main.player2) {
+            //TODO maybe change this ?
+            //reset to player1
+            Main.isGrabbed = true;
+            //teleport second on top
+            Main.player2.setX(Main.player1.getX());
+            Main.player2.setY(Main.player1.getY() + Main.player1.getHeight() + 3); // 3 for spacing
+            Main.player2.setxVelocity(0);
+            Main.player2.setyVelocity(0);
+        }
+        return e instanceof Projectile; //if it's a projectile, kill the biter
+    }
+
+    @Override
+    public boolean onHit(Renderable r) {
+        return false;
+    }
+
 }
