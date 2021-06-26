@@ -357,11 +357,6 @@ public class Main {
         String data = Utils.loadGzResource(name);
         String[] plats = data.split("\n");
         Button lastButton = null;
-        // menu
-        menu.setX(0);
-        menu.setY(-windowHeight*1.6);
-        menu.setHeight(windowHeight*2);
-        menu.setWidth(windowWidth*2);
         for (String pl : plats) {
             if (pl.trim().length() == 0 || pl.startsWith("//")) {
                 continue;
@@ -441,6 +436,19 @@ public class Main {
                 } catch (NumberFormatException e) {
                     System.err.println("Bad number for line " + pl + "skipping");
                 }
+            } else if (coords.length == 5 && coords[0].equals("bite")) {
+                Biter p = new Biter();
+                try {
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2]));
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2])); // duplicated because lastx and lasty
+                    p.setHeight(Double.parseDouble(coords[3]));
+                    p.setWidth(Double.parseDouble(coords[4]));
+                    entities.add(p);
+                } catch (NumberFormatException e) {
+                    System.err.println("Bad number for line " + pl + "skipping");
+                }
             } else {
                 //uh uh
                 System.err.println("this line " + pl + " is invalid ! skipping");
@@ -478,6 +486,17 @@ public class Main {
                     player2.setY(player1.getY() + player1.getHeight() + 3); // 3 for spacing
                 }
             }
+            if (e instanceof Biter) {
+                Biter b = (Biter) e;
+                b.setChase(player1);
+                if (!b.isChasing()) {
+                    b.setChase(player2);
+                    b.setAccel(player2);
+                } else {
+                    b.setAccel(player1);
+                }
+                b.setxVelocity(b.getAccel());
+            }
         }
         // Entity-Platform collisions
         for (Entity e : entities) {
@@ -490,9 +509,15 @@ public class Main {
                     continue;
                 }
                 if (Utils.intersects(e, p)) {
+                    if (!(e instanceof Player) && p instanceof FinalDoor) {
+                        continue;//no collide
+                    }
                     if (e instanceof ActionOnTouch) {
                         if (((ActionOnTouch) e).onHit(p)) {
                             forDeletion.add(e);
+                        }
+                        if (!(e instanceof Projectile)) {
+                            Utils.resolveCollision(e, p);
                         }
                     }
                     if (p instanceof ActionOnTouch) {
@@ -606,7 +631,12 @@ public class Main {
         player2.setWidth(30);
         player2.setHeight(30);
         entities.add(player2);
-        //player1 = player2;
+
+        // menu
+        menu.setX(0);
+        menu.setY(-1200);
+        menu.setHeight(1200);
+        menu.setWidth(1200);
 
 
         loadLevel(levels[currentLevel]);
@@ -680,10 +710,24 @@ public class Main {
             glEnd();
             glPopMatrix();
             //
-            if (isPaused){
+            if (isPaused) {
                 glColor4f(1, 1, 1, 1);
                 glBindTexture(GL_TEXTURE_2D, menuTexture);
-                menu.render();
+                //render menu !
+                glPushMatrix();
+                glTranslated(menu.getX() + menu.getWidth(), menu.getY(), 0);
+                glScaled(-1, 1, 1);
+                glBegin(GL_QUADS);
+                glTexCoord2f(1, 1);
+                glVertex2d(0, 0);
+                glTexCoord2f(1, 0);
+                glVertex2d(0, menu.getHeight());
+                glTexCoord2f(0, 0);
+                glVertex2d(menu.getWidth(), menu.getHeight());
+                glTexCoord2f(0, 1);
+                glVertex2d(menu.getWidth(), 0);
+                glEnd();
+                glPopMatrix();
             }
             else {
                 for (Renderable pl : platforms) {
