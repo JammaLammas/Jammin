@@ -463,6 +463,19 @@ public class Main {
                 } catch (NumberFormatException e) {
                     System.err.println("Bad number for line " + pl + "skipping");
                 }
+            } else if (coords.length == 5 && coords[0].equals("bounce")) {
+                BouncyPlatform p = new BouncyPlatform();
+                try {
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2]));
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2])); // duplicated because lastx and lasty
+                    p.setHeight(Double.parseDouble(coords[3]));
+                    p.setWidth(Double.parseDouble(coords[4]));
+                    platforms.add(p);
+                } catch (NumberFormatException e) {
+                    System.err.println("Bad number for line " + pl + "skipping");
+                }
             } else {
                 //uh uh
                 System.err.println("this line " + pl + " is invalid ! skipping");
@@ -536,7 +549,9 @@ public class Main {
                     }
                     if (p instanceof ActionOnTouch) {
                         ((ActionOnTouch) p).onHit(e);
-                        Utils.resolveCollision(e, p);
+                        if (!(p instanceof BouncyPlatform)) { //bouncy platform
+                            Utils.resolveCollision(e, p);
+                        }
                     }
                     if (!(e instanceof ActionOnTouch) && !(p instanceof ActionOnTouch)) { //TODO will maybe cause errors in the future, be careful
                         Utils.resolveCollision(e, p);
@@ -612,8 +627,8 @@ public class Main {
             }
         }
         // Camera following p1
-        cameraX += (player1.getX() - player1.getLastX());
-        cameraY += ((player1.getY() - player1.getLastY()) - 0.981);
+        cameraX = player1.getX() - 300;
+        cameraY = player1.getY() + 800;
         if (reset) {
             resetLevel();
         }
