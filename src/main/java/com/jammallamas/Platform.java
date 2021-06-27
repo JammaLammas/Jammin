@@ -8,7 +8,7 @@ public class Platform extends Renderable {
 
     public Platform() {
         super();
-        if (staticTexture == 0) {
+        if (Utils.hasOGLContext()) {
             initTextures();
         }
     }
@@ -35,11 +35,13 @@ public class Platform extends Renderable {
 
     @Override
     public void initTextures() {
-        try {
-            staticTexture = Utils.loadTexture("platform.png");
-        } catch (Exception e) {
-            e.printStackTrace();
-            staticTexture = 0;
+        if (staticTexture == 0) {
+            try {
+                staticTexture = Utils.loadTexture("platform.png");
+            } catch (Exception e) {
+                e.printStackTrace();
+                staticTexture = 0;
+            }
         }
     }
 

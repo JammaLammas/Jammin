@@ -11,7 +11,7 @@ public class Button extends Renderable implements ActionOnTouch {
 
     public Button() {
         super();
-        if (buttonTexture == 0) {
+        if (Utils.hasOGLContext()) {
             initTextures();
         }
     }
@@ -39,12 +39,14 @@ public class Button extends Renderable implements ActionOnTouch {
 
     @Override
     public void initTextures() {
-        super.initTextures(); //call needed for all platforms
-        try {
-            buttonTexture = Utils.loadTexture("button.png");
-        } catch (Exception e) {
-            e.printStackTrace();
-            buttonTexture = 0;
+        if (buttonTexture == 0) {
+            super.initTextures(); //call needed for all platforms
+            try {
+                buttonTexture = Utils.loadTexture("button.png");
+            } catch (Exception e) {
+                e.printStackTrace();
+                buttonTexture = 0;
+            }
         }
     }
 

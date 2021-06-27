@@ -6,10 +6,6 @@ public class Lazer extends Platform implements ActionOnTouch {
 
     private transient int frameCount = 0;
 
-    public Lazer() {
-        super();
-    }
-
     @Override
     public void render() {
         glColor4f(1, 0, 0, 1);

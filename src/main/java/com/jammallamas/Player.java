@@ -9,7 +9,7 @@ public class Player extends Entity {
 
     public Player() {
         super();
-        if (p1Texture == 0 || p2Texture == 0) {
+        if (Utils.hasOGLContext()) {
             initTextures();
         }
     }
@@ -35,14 +35,6 @@ public class Player extends Entity {
         glPopMatrix();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Player)) return false;
-        Player player = (Player) o;
-        return getWalking() == player.getWalking();
-    }
-
     public byte getWalking() {
         return this.walking;
     }
@@ -53,7 +45,7 @@ public class Player extends Entity {
 
     @Override
     public int getTexture() {
-        if (this == Main.player1) {
+        if (this.equals(Main.player1)) {
             return p1Texture;
         } else {
             return p2Texture;
@@ -62,18 +54,20 @@ public class Player extends Entity {
 
     @Override
     public void initTextures() {
-        try {
-            p1Texture = Utils.loadTexture("p1.png");
-        } catch (Exception e) {
-            e.printStackTrace();
-            p1Texture = 0;
-        }
+        if (p1Texture == 0 || p2Texture == 0) {
+            try {
+                p1Texture = Utils.loadTexture("p1.png");
+            } catch (Exception e) {
+                e.printStackTrace();
+                p1Texture = 0;
+            }
 
-        try {
-            p2Texture = Utils.loadTexture("p2.png");
-        } catch (Exception e) {
-            e.printStackTrace();
-            p2Texture = 0;
+            try {
+                p2Texture = Utils.loadTexture("p2.png");
+            } catch (Exception e) {
+                e.printStackTrace();
+                p2Texture = 0;
+            }
         }
     }
 }

@@ -57,7 +57,7 @@ public class Biter extends Entity implements ActionOnTouch {
 
     public Biter() {
         super();
-        if (biterTexture == 0) {
+        if (Utils.hasOGLContext()) {
             initTextures();
         }
     }
@@ -159,11 +159,13 @@ public class Biter extends Entity implements ActionOnTouch {
 
     @Override
     public void initTextures() {
-        try {
-            biterTexture = Utils.loadTexture("biter.png");
-        } catch (Exception e) {
-            e.printStackTrace();
-            biterTexture = 0;
+        if (biterTexture == 0) {
+            try {
+                biterTexture = Utils.loadTexture("biter.png");
+            } catch (Exception e) {
+                e.printStackTrace();
+                biterTexture = 0;
+            }
         }
     }
 

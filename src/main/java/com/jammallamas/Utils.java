@@ -11,6 +11,7 @@ import java.nio.IntBuffer;
 import java.util.Scanner;
 import java.util.zip.GZIPInputStream;
 
+import static org.lwjgl.glfw.GLFW.glfwGetCurrentContext;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Utils {
@@ -119,5 +120,9 @@ public class Utils {
         STBImage.stbi_image_free(buf);
 
         return textureId;
+    }
+
+    public static boolean hasOGLContext() {
+        return glfwGetCurrentContext() != 0;
     }
 }

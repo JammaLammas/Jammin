@@ -10,11 +10,14 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.libc.LibCStdlib;
 
 import javax.swing.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -562,13 +565,90 @@ public class Main {
     }
 
     private static void checkState() {
+        if (!isPaused) {
+            for (Entity e : entities) {
+                e.onFrame();
+            }
+            for (Renderable p : platforms) {
+                p.onFrame();
+            }
+        }
         if (gd != null) {
             cameraX = gd.player1.getX() - 300;
             cameraY = gd.player1.getY() + 800;
             gd.entities.add(gd.player1);
             gd.entities.add(gd.player2);
-            entities = gd.entities;
-            platforms = gd.platforms;
+            ArrayList<Entity> checked = (ArrayList<Entity>) entities.clone();
+            for (Entity e : gd.entities) {
+                int ind = entities.indexOf(e);
+                if (ind == -1) {
+                    //just make sure the textures exist
+                    e.initTextures();
+                    //i don't know this object, i'll accept whatever you say
+                    entities.add(e);
+                } else {
+                    //i know it, tell me what changed
+                    Entity ori = entities.get(ind);
+
+                    //magic time
+                    Class<?> clazz = ori.getClass();
+                    ArrayList<Field> fields = new ArrayList<>();
+                    while (clazz.getSuperclass() != null) {
+                        fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
+                        clazz = clazz.getSuperclass();
+                    }
+                    //we got all fields now we need to remove the bad ones
+                    fields.stream().filter((f) -> !(Modifier.isTransient(f.getModifiers()) || Modifier.isStatic(f.getModifiers()))).forEach((f) -> {
+                        f.setAccessible(true); //change private fields
+                        try {
+                            f.set(ori, f.get(e));
+                        } catch (IllegalAccessException illegalAccessException) {
+                            illegalAccessException.printStackTrace(); //should not happen
+                        }
+                    });
+                    checked.remove(ori); //no longer need you
+                }
+            }
+            for (Entity e : checked) {
+                entities.remove(e);
+            }
+            //entities = gd.entities;
+            ArrayList<Renderable> check = (ArrayList<Renderable>) platforms.clone();
+            for (Renderable e : gd.platforms) {
+                int ind = platforms.indexOf(e);
+                if (ind == -1) {
+                    //just make sure the textures exist
+                    e.initTextures();
+
+                    //i don't know this object, i'll accept whatever you say
+                    platforms.add(e);
+                } else {
+                    //i know it, tell me what changed
+                    Renderable ori = platforms.get(ind);
+
+                    //magic time
+                    Class<?> clazz = ori.getClass();
+                    ArrayList<Field> fields = new ArrayList<>();
+                    while (clazz.getSuperclass() != null) {
+                        fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
+                        clazz = clazz.getSuperclass();
+                    }
+                    //we got all fields now we need to remove the bad ones
+                    fields.stream().filter((f) -> !(Modifier.isTransient(f.getModifiers()) || Modifier.isStatic(f.getModifiers()))).forEach((f) -> {
+                        f.setAccessible(true); //change private fields
+                        try {
+                            f.set(ori, f.get(e));
+                        } catch (IllegalAccessException illegalAccessException) {
+                            illegalAccessException.printStackTrace(); //should not happen
+                        }
+                    });
+                    check.remove(ori); //no longer need you
+                }
+            }
+            for (Renderable e : check) {
+                platforms.remove(e);
+            }
+            //platforms = gd.platforms;
             player1 = gd.player1;
             player2 = gd.player2;
             grabTimeout = gd.grabTimeout;
@@ -614,7 +694,6 @@ public class Main {
                     player2.setY(player1.getY() + player1.getHeight() + 3); // 3 for spacing
                 }
             }
-            e.onFrame();
         }
         // Entity-Platform collisions
         for (Entity e : entities) {
@@ -623,7 +702,6 @@ public class Main {
             }
             e.setOnGround(false);  // Default case, if onGround then will be set so below
             for (Renderable p : platforms) {
-                p.onFrame();
                 if (!p.collidable) {
                     continue;
                 }
