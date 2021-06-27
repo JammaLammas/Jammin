@@ -29,6 +29,7 @@ public class Lazer extends Platform implements ActionOnTouch {
     @Override
     public boolean onHit(Entity e) {
         //i don't care who you are, you get deleted
+        e.onDeath();
         if (e == Main.player1) {
             Main.queueReset();
         } else if (e == Main.player2) {

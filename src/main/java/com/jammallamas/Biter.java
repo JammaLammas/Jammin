@@ -72,12 +72,20 @@ public class Biter extends Entity implements ActionOnTouch {
     @Override
     public void onFrame() {
         frameCount++;
+        boolean oldChase = isChasing;
         this.setChase(Main.player1);
         if (!this.isChasing()) {
             this.setChase(Main.player2);
             this.setAccel(Main.player2);
         } else {
             this.setAccel(Main.player1);
+        }
+        if (oldChase != isChasing) {
+            if (isChasing) {
+                Main.playAudio(Main.biterWalkAudio, ((int) getX()), (int) (getY()), true);
+            } else {
+                Main.stopAudio(Main.biterWalkAudio); //no longer chasing
+            }
         }
         this.setxVelocity(this.getAccel());
         //update animation
@@ -149,9 +157,19 @@ public class Biter extends Entity implements ActionOnTouch {
     }
 
     @Override
+    public void onDeath() {
+        if (Main.isAudioPlaying(Main.biterWalkAudio)) {
+            Main.stopAudio(Main.biterWalkAudio);
+        }
+    }
+
+    @Override
     public boolean onHit(Entity e) {
         if (e == Main.player1) {
             Main.queueReset(); //reset ?
+            if (Main.isAudioPlaying(Main.biterWalkAudio)) {
+                Main.stopAudio(Main.biterWalkAudio);
+            }
         } else if (e == Main.player2) {
             //reset to player1
             Main.isGrabbed = true;

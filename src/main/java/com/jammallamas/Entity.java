@@ -2,6 +2,11 @@ package com.jammallamas;
 
 public class Entity extends Renderable {
 
+
+    public void onDeath() {
+
+    }
+
     private boolean onGround = false;
     private double yVelocity = 0;
     private double xVelocity = 0;
