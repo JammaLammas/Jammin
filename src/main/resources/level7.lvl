@@ -20,13 +20,13 @@ p:0:-630:100:1450
 p:650:-230:30:200
 
 // Biter 1 (drop)
-dropBite:675:-200:150:75
+dropBite:675:-200:100:100
 
 // Biter platform 2
 p:1100:-230:30:200
 
 // Biter 2 (drop)
-dropBite:1125:-200:150:75
+dropBite:1125:-200:100:100
 
 
 

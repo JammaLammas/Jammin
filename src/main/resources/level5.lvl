@@ -16,7 +16,7 @@ br:700:-530:200:200
 p:900:-330:200:400
 
 // Enemy on yeeting platform
-bite:1100:-100:150:75
+bite:1100:-100:100:100
 
 // Smol platform
 p:1600:-430:30:100
