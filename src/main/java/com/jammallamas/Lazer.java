@@ -15,7 +15,7 @@ public class Lazer extends Platform implements ActionOnTouch {
     @Override
     public void onFrame() {
         frameCount++;
-        if (frameCount % 300 == 0) {
+        if (frameCount % 200 == 0) {
             visible = !visible;
             collidable = !collidable;
         }

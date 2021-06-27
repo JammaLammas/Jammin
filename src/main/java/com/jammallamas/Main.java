@@ -41,7 +41,7 @@ public class Main {
     private static final double AIR_FRICTION = 0.00;
     private static final long GRAB_COOLDOWN = 200;
     private static final String[] levels = new String[]{
-            "/testLevel.lvl.gz",
+    //        "/testLevel.lvl.gz",
             "/level1.lvl.gz",
             "/level2.lvl.gz",
             "/level3.lvl.gz",
@@ -724,6 +724,9 @@ public class Main {
                         if (!(p instanceof BouncyPlatform) && !(p instanceof Button)) { //bouncy platform & button
                             Utils.resolveCollision(e, p);
                         }
+                        if (!(e instanceof ActionOnTouch) && p instanceof Button) {
+                            Utils.resolveCollision(e, p);
+                        }
                     }
                     if (!(e instanceof ActionOnTouch) && !(p instanceof ActionOnTouch)) { //TODO will maybe cause errors in the future, be careful
                         Utils.resolveCollision(e, p);
@@ -966,7 +969,6 @@ public class Main {
     }
 
     private static void resetLevel() {
-        System.out.println("clearing out !");
         reset = false;
         entities.clear();
         platforms.clear();
