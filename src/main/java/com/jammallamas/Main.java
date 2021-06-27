@@ -50,6 +50,7 @@ public class Main {
             "/level6.lvl.gz",
             "/level7.lvl.gz",
             "/level8.lvl.gz",
+            "/level9.lvl.gz",
     };
     public static int currentLevel = 0;
     public static double cameraX = 0;
@@ -719,7 +720,8 @@ public class Main {
                     }
                     if (p instanceof ActionOnTouch) {
                         ((ActionOnTouch) p).onHit(e);
-                        if (!(p instanceof BouncyPlatform)) { //bouncy platform
+                        //TODO ActionOnTouch & NOT go-trough, see here for exception
+                        if (!(p instanceof BouncyPlatform) && !(p instanceof Button)) { //bouncy platform & button
                             Utils.resolveCollision(e, p);
                         }
                     }

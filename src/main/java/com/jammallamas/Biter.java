@@ -7,11 +7,10 @@ public class Biter extends Entity implements ActionOnTouch {
     private static final int FRAMES = 7;
     private static int biterTexture = 0;
 
-    private final double AGGRO_RANGE = 350;
-    private final double MAX_RUN = 20;
-    private final double MAX_WALK = 10;
-    private final double WALK_ACCEL = 1;
-    private final double CHASE_ACCEL = 4;
+    private static final double AGGRO_RANGE = 350;
+    private static final double WALK_ACCEL = 1;
+    private static final double CHASE_ACCEL = 4;
+    private static final long REACTION_TIME = 200;
     private boolean isChasing = false;
     private double accel = WALK_ACCEL;
     private boolean dropsEdges = false;
@@ -29,12 +28,7 @@ public class Biter extends Entity implements ActionOnTouch {
         }
     }
 
-    private boolean checkForPlayer(Entity player) {
-        return player.getX() + player.getWidth() >= this.getX() - this.AGGRO_RANGE
-                && player.getX() <= this.getX() + this.getWidth() + this.AGGRO_RANGE
-                && player.getY() + player.getHeight() > this.getY() - this.AGGRO_RANGE
-                && player.getY() < this.getY() + this.getHeight() + this.AGGRO_RANGE;
-    }
+    private transient long runDelay = 0;
 
     public void setChase(Entity player) {
         this.isChasing = this.checkForPlayer(player);
@@ -48,16 +42,30 @@ public class Biter extends Entity implements ActionOnTouch {
         return accel;
     }
 
+    private boolean checkForPlayer(Entity player) {
+        return player.getX() + player.getWidth() >= this.getX() - AGGRO_RANGE
+                && player.getX() <= this.getX() + this.getWidth() + AGGRO_RANGE
+                && player.getY() + player.getHeight() > this.getY() - AGGRO_RANGE
+                && player.getY() < this.getY() + this.getHeight() + AGGRO_RANGE;
+    }
+
     public void setAccel(Entity player) {
+        double runSign = Math.signum(this.accel);
         if (this.isChasing) this.accel = CHASE_ACCEL;
         else this.accel = WALK_ACCEL;
         if (this.getX() > player.getX()) this.accel *= -1;
         else this.accel = Math.abs(this.accel);
-        if (Main.getPlatformAt(getX() + this.accel, getY() - 1) == null) {
-            //uh uh
-            if (!dropsEdges) {
-                this.accel = 0; //let's not jump off
+        if (runSign != Math.signum(this.accel)) {
+            //wait he turned around ?
+            if (runDelay > System.currentTimeMillis()) {
+                //not reacted yet
+                this.accel *= -1;
             }
+        } else {
+            runDelay = System.currentTimeMillis() + REACTION_TIME;
+        }
+        if (!dropsEdges && Main.getPlatformAt(getX() + this.accel, getY() - 1) == null) {
+            this.accel = 0; //let's not jump off
         }
     }
 
@@ -176,10 +184,6 @@ public class Biter extends Entity implements ActionOnTouch {
     @Override
     public boolean onHit(Renderable r) {
         return false;
-    }
-
-    public boolean isDropsEdges() {
-        return dropsEdges;
     }
 
     public void setDropsEdges(boolean dropsEdges) {
