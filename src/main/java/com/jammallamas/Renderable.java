@@ -2,9 +2,14 @@ package com.jammallamas;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.UUID;
+
 import static org.lwjgl.opengl.GL11.*;
 
 public class Renderable {
+
+    public UUID id = UUID.randomUUID();
+
     public boolean visible = true;
     public boolean collidable = true;
     private double last_x;
@@ -13,6 +18,27 @@ public class Renderable {
     private double y;
     private double height;
     private double width;
+    @SerializedName("type")
+    private final String typeName;
+
+    public Renderable() {
+        typeName = getClass().getName();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Renderable)) return false;
+
+        Renderable that = (Renderable) o;
+
+        return id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 
     public void initTextures() {
         //nothing by default
@@ -27,13 +53,6 @@ public class Renderable {
      */
     public void onFrame() {
 
-    }
-
-    @SerializedName("type")
-    private String typeName;
-
-    public Renderable() {
-        typeName = getClass().getName();
     }
 
     public double getY() {

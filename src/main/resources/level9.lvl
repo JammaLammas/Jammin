@@ -1,0 +1,89 @@
+// Format:
+// t:x:y:h:w
+
+// p = platform
+// b = button
+// br = bridge (initially off)
+// bro = bridge (initially on)
+// end = door
+// bite = biter (no drop)
+// dropBite = biter (drop)
+// bounce = bounci (bounci)
+
+
+// Levels
+
+// Main platform (cut for aesthetics)
+p:0:-630:100:500
+p:500:-630:100:600
+p:1100:-630:100:600
+p:1700:-630:100:500
+
+// Lazer just before the door
+lazer:2080:-530:300:20
+
+// End Door
+end:2100:-530:150:100
+
+// Bad Guy Biter
+bite:1400:-530:100:100
+
+// Biter Platform
+p:0:-850:100:400
+
+
+
+// Biter Button 1
+b:400:-850:100:100
+
+// Blocking Bridge 1
+bro:500:-530:300:50
+
+// Biter Platform 2
+p:500:-850:100:500
+
+
+
+
+// Biter Button 2
+b:1000:-850:100:100
+
+// Blocking Bridge 2
+bro:1100:-530:300:50
+
+// Biter Platform 3
+p:1100:-850:100:500
+
+
+
+// Biter Button 3
+b:1600:-850:100:100
+
+// Blocking Bridge 3
+bro:1700:-530:300:50
+
+// Biter Platform 4
+p:1700:-850:100:500
+
+
+
+
+// Biter runner
+bite:0:-750:100:100
+
+
+
+// Death planes:
+
+// Death plane - top
+d:-3000:3000:100:6000
+
+// Death plane - bottom
+d:-3000:-1200:100:6000
+
+// Death plane - right
+d:3000:-1200:4200:100
+
+// Death plane - left
+d:-3000:-1200:4200:100
+

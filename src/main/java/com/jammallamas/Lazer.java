@@ -1,10 +1,29 @@
 package com.jammallamas;
 
-public class DeathPlane extends Platform implements ActionOnTouch {
+import static org.lwjgl.opengl.GL11.glColor4f;
 
-    public DeathPlane() {
-        visible = false;
-        collidable = true;
+public class Lazer extends Platform implements ActionOnTouch {
+
+    private transient int frameCount = 0;
+
+    @Override
+    public void render() {
+        glColor4f(1, 0, 0, 1);
+        super.render();
+    }
+
+    @Override
+    public void onFrame() {
+        frameCount++;
+        if (frameCount % 200 == 0) {
+            visible = !visible;
+            collidable = !collidable;
+        }
+    }
+
+    @Override
+    public int getTexture() {
+        return 0; //TODO texture ?
     }
 
     @Override

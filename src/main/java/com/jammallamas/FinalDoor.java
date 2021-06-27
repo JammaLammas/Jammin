@@ -8,7 +8,7 @@ public class FinalDoor extends Renderable implements ActionOnTouch {
 
     public FinalDoor() {
         super();
-        if (doorTexture == 0) {
+        if (Utils.hasOGLContext()) {
             initTextures();
         }
     }
@@ -35,12 +35,14 @@ public class FinalDoor extends Renderable implements ActionOnTouch {
 
     @Override
     public void initTextures() {
-        super.initTextures(); //call needed for all platforms
-        try {
-            doorTexture = Utils.loadTexture("door.png");
-        } catch (Exception e) {
-            e.printStackTrace();
-            doorTexture = 0;
+        if (doorTexture == 0) {
+            super.initTextures(); //call needed for all platforms
+            try {
+                doorTexture = Utils.loadTexture("door.png");
+            } catch (Exception e) {
+                e.printStackTrace();
+                doorTexture = 0;
+            }
         }
     }
 
@@ -54,7 +56,6 @@ public class FinalDoor extends Renderable implements ActionOnTouch {
         if (e instanceof Player) {
             if (!Main.isLoading) {
                 Main.isLoading = true;
-                System.out.println("more levels !");
                 Main.currentLevel++;
                 Main.queueReset();
             }

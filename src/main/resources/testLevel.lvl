@@ -7,6 +7,9 @@
 // Start Platform
 p:0:-630:100:600
 
+//test lazer
+lazer:600:-530:300:20
+
 // Buttons
 b:500:-300:50:50
 // Button activated bridge

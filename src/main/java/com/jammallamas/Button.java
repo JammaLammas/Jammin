@@ -7,15 +7,16 @@ import static org.lwjgl.opengl.GL11.*;
 public class Button extends Renderable implements ActionOnTouch {
 
     private static int buttonTexture = 0;
-    private ArrayList<ButtonLinkable> action = new ArrayList<>();
+    private final ArrayList<ButtonLinkable> action = new ArrayList<>();
+    private transient long cooldown = 0;
+
 
     public Button() {
         super();
-        if (buttonTexture == 0) {
+        if (Utils.hasOGLContext()) {
             initTextures();
         }
     }
-
 
     @Override
     public void render() {
@@ -39,12 +40,14 @@ public class Button extends Renderable implements ActionOnTouch {
 
     @Override
     public void initTextures() {
-        super.initTextures(); //call needed for all platforms
-        try {
-            buttonTexture = Utils.loadTexture("button.png");
-        } catch (Exception e) {
-            e.printStackTrace();
-            buttonTexture = 0;
+        if (buttonTexture == 0) {
+            super.initTextures(); //call needed for all platforms
+            try {
+                buttonTexture = Utils.loadTexture("button.png");
+            } catch (Exception e) {
+                e.printStackTrace();
+                buttonTexture = 0;
+            }
         }
     }
 
@@ -55,11 +58,14 @@ public class Button extends Renderable implements ActionOnTouch {
 
     @Override
     public boolean onHit(Entity e) {
-        if (e instanceof Projectile) {
+        //if (e instanceof Projectile) {
+        if (cooldown <= System.currentTimeMillis()) {
+            cooldown = System.currentTimeMillis() + 1000;
             for (ButtonLinkable act : action) {
                 act.onButton();
             }
         }
+        //}
         return false;
     }
 

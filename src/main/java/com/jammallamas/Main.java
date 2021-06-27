@@ -10,15 +10,19 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.libc.LibCStdlib;
 
 import javax.swing.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.openal.AL10.*;
+import static org.lwjgl.openal.AL11.AL_LINEAR_DISTANCE_CLAMPED;
 import static org.lwjgl.openal.ALC10.alcOpenDevice;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.stb.STBVorbis.stb_vorbis_decode_filename;
@@ -72,6 +76,9 @@ public class Main {
     private static boolean reset = false;
     private static GameData gd = null;
 
+    public static int biterWalkAudio = 0;
+    private static int jumpAudio = 0;
+
     public static void main(String[] args) {
         try {
             init();
@@ -91,6 +98,76 @@ public class Main {
             glfwTerminate();
             glfwSetErrorCallback(null).free();
             System.exit(0); //close everything else i forgot
+        }
+    }
+
+    private static int initAudioBuffer(String filename) {
+        int sampleRate;
+        int channels;
+        ShortBuffer rawAudioBuffer;
+        try (MemoryStack stack = stackPush()) {
+            IntBuffer channelsBuffer = stack.mallocInt(1);
+            IntBuffer sampleRateBuffer = stack.mallocInt(1);
+            rawAudioBuffer = stb_vorbis_decode_filename(filename, channelsBuffer, sampleRateBuffer);
+            channels = channelsBuffer.get();
+            sampleRate = sampleRateBuffer.get();
+        }
+        //Find the correct OpenAL format
+        int format = -1;
+        if (channels == 1) {
+            format = AL_FORMAT_MONO16;
+        } else if (channels == 2) {
+            format = AL_FORMAT_STEREO16;
+        }
+        //Request space for the buffer
+        int bufferPointer = alGenBuffers();
+
+        //Send the data to OpenAL
+        alBufferData(bufferPointer, format, rawAudioBuffer, sampleRate);
+
+        //Free the memory allocated by STB
+        LibCStdlib.free(rawAudioBuffer);
+
+        int sourcePointer = alGenSources();
+        alSourcei(sourcePointer, AL_BUFFER, bufferPointer);
+
+        return sourcePointer;
+    }
+
+    private static void updateAudioListener(Player p) {
+        float[] listenerPos = {(float) p.getX(), (float) p.getY(), 0f};
+        float[] listenerVel = {(float) p.getxVelocity(), (float) p.getyVelocity(), 0f};
+        float[] listenerOri = {0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f};
+        alListenerfv(AL_POSITION, listenerPos);
+        alListenerfv(AL_VELOCITY, listenerVel);
+        alListenerfv(AL_ORIENTATION, listenerOri);
+    }
+
+    public static void playAudio(int sourcePointer, int x, int y, boolean loop) {
+        int bufferPointer = alGetSourcei(sourcePointer, AL_BUFFER);
+        float[] sourcePosition = {x, y, 0.f};
+        alSourcefv(sourcePointer, AL_POSITION, sourcePosition);
+        alSourcei(sourcePointer, AL_SOURCE_RELATIVE, AL_FALSE);
+        alSourcei(sourcePointer, AL_LOOPING, loop ? AL_TRUE : AL_FALSE);
+        alSourcef(sourcePointer, AL_MAX_DISTANCE, 400f);
+        alSourcef(sourcePointer, AL_REFERENCE_DISTANCE, 200f);
+
+        double time = alGetBufferi(bufferPointer, AL_FREQUENCY) + 0.0d / alGetBufferi(bufferPointer, AL_SIZE);
+
+        //Play the sound
+        alSourcePlay(sourcePointer);
+
+        if (!loop) {
+            new Thread(() -> {
+                try {
+                    Thread.sleep((long) (time * 1000));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                //free up
+                alDeleteSources(sourcePointer);
+                alSourceStop(sourcePointer);
+            }).start();
         }
     }
 
@@ -209,6 +286,10 @@ public class Main {
         ALC10.alcMakeContextCurrent(context);
         ALCCapabilities alcCapabilities = ALC.createCapabilities(device);
         ALCapabilities alCapabilities = AL.createCapabilities(alcCapabilities);
+        alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
+
+        biterWalkAudio = initAudioBuffer("biter_walk.ogg");
+        jumpAudio = initAudioBuffer("jump.ogg");
 
         // Create the window
         //300x300
@@ -258,6 +339,7 @@ public class Main {
                 // Space key: Jump
                 if ((key == GLFW_KEY_SPACE || key == GLFW_KEY_W) && action == GLFW_PRESS && (!NetworkManager.connected || NetworkManager.isHosting)) {
                     if (player1.isOnGround()) {
+                        playAudio(jumpAudio, (int) (player1.getX()), (int) (player1.getY()), false);
                         player1.setyVelocity(25);
                     }
                 }
@@ -541,6 +623,19 @@ public class Main {
                 } catch (NumberFormatException e) {
                     System.err.println("Bad number for line " + pl + "skipping");
                 }
+            } else if (coords.length == 5 && coords[0].equals("lazer")) {
+                Lazer p = new Lazer();
+                try {
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2]));
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2])); // duplicated because lastx and lasty
+                    p.setHeight(Double.parseDouble(coords[3]));
+                    p.setWidth(Double.parseDouble(coords[4]));
+                    platforms.add(p);
+                } catch (NumberFormatException e) {
+                    System.err.println("Bad number for line " + pl + "skipping");
+                }
             } else {
                 //uh uh
                 System.err.println("this line " + pl + " is invalid ! skipping");
@@ -549,31 +644,117 @@ public class Main {
     }
 
     private static void checkState() {
+        if (!isPaused) {
+            for (Entity e : entities) {
+                e.onFrame();
+            }
+            for (Renderable p : platforms) {
+                p.onFrame();
+            }
+        }
         if (gd != null) {
-            cameraX = gd.player1.getX() - 300;
-            cameraY = gd.player1.getY() + 800;
-            gd.entities.add(gd.player1);
-            gd.entities.add(gd.player2);
-            entities = gd.entities;
-            platforms = gd.platforms;
-            player1 = gd.player1;
-            player2 = gd.player2;
-            grabTimeout = gd.grabTimeout;
-            isGrabbed = gd.isGrabbed;
-            isPaused = gd.isPaused;
-
-            gd = null;
+            gameDataCopy();
             return;
         }
         if (!isPaused) {
             handleKeys(bits);
             bits = 0;
+            if (NetworkManager.connected && !NetworkManager.isHosting) {
+                updateAudioListener(player2);
+            } else {
+                updateAudioListener(player1);
+            }
             runGameLogic();
         }
         //update game state
         if (NetworkManager.connected && NetworkManager.isHosting) {
             NetworkManager.sendGameData(new GameData(entities, platforms, player1, player2, grabTimeout, isGrabbed, isPaused));
         }
+    }
+
+    private static void gameDataCopy() {
+        cameraX = (NetworkManager.isHosting ? gd.player1.getX() : gd.player2.getX()) - 300;
+        cameraY = (NetworkManager.isHosting ? gd.player1.getY() : gd.player2.getY()) + 800;
+        gd.entities.add(gd.player1);
+        gd.entities.add(gd.player2);
+        ArrayList<Entity> checked = (ArrayList<Entity>) entities.clone();
+        for (Entity e : gd.entities) {
+            int ind = entities.indexOf(e);
+            if (ind == -1) {
+                //just make sure the textures exist
+                e.initTextures();
+                //i don't know this object, i'll accept whatever you say
+                entities.add(e);
+            } else {
+                //i know it, tell me what changed
+                Entity ori = entities.get(ind);
+
+                //magic time
+                Class<?> clazz = ori.getClass();
+                ArrayList<Field> fields = new ArrayList<>();
+                while (clazz.getSuperclass() != null) {
+                    fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
+                    clazz = clazz.getSuperclass();
+                }
+                //we got all fields now we need to remove the bad ones
+                fields.stream().filter((f) -> !(Modifier.isTransient(f.getModifiers()) || Modifier.isStatic(f.getModifiers()))).forEach((f) -> {
+                    f.setAccessible(true); //change private fields
+                    try {
+                        f.set(ori, f.get(e));
+                    } catch (IllegalAccessException illegalAccessException) {
+                        illegalAccessException.printStackTrace(); //should not happen
+                    }
+                });
+                checked.remove(ori); //no longer need you
+            }
+        }
+        for (Entity e : checked) {
+            entities.remove(e);
+        }
+        //entities = gd.entities;
+        ArrayList<Renderable> check = (ArrayList<Renderable>) platforms.clone();
+        for (Renderable e : gd.platforms) {
+            int ind = platforms.indexOf(e);
+            if (ind == -1) {
+                //just make sure the textures exist
+                e.initTextures();
+
+                //i don't know this object, i'll accept whatever you say
+                platforms.add(e);
+            } else {
+                //i know it, tell me what changed
+                Renderable ori = platforms.get(ind);
+
+                //magic time
+                Class<?> clazz = ori.getClass();
+                ArrayList<Field> fields = new ArrayList<>();
+                while (clazz.getSuperclass() != null) {
+                    fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
+                    clazz = clazz.getSuperclass();
+                }
+                //we got all fields now we need to remove the bad ones
+                fields.stream().filter((f) -> !(Modifier.isTransient(f.getModifiers()) || Modifier.isStatic(f.getModifiers()))).forEach((f) -> {
+                    f.setAccessible(true); //change private fields
+                    try {
+                        f.set(ori, f.get(e));
+                    } catch (IllegalAccessException illegalAccessException) {
+                        illegalAccessException.printStackTrace(); //should not happen
+                    }
+                });
+                check.remove(ori); //no longer need you
+            }
+        }
+        for (Renderable e : check) {
+            platforms.remove(e);
+        }
+        //platforms = gd.platforms;
+        player1 = gd.player1;
+        player2 = gd.player2;
+        grabTimeout = gd.grabTimeout;
+        isGrabbed = gd.isGrabbed;
+        isPaused = gd.isPaused;
+
+        gd = null;
     }
 
     private static void runGameLogic() {
@@ -601,7 +782,6 @@ public class Main {
                     player2.setY(player1.getY() + player1.getHeight() + 3); // 3 for spacing
                 }
             }
-            e.onFrame();
         }
         // Entity-Platform collisions
         for (Entity e : entities) {
@@ -627,7 +807,11 @@ public class Main {
                     }
                     if (p instanceof ActionOnTouch) {
                         ((ActionOnTouch) p).onHit(e);
-                        if (!(p instanceof BouncyPlatform)) { //bouncy platform
+                        //TODO ActionOnTouch & NOT go-trough, see here for exception
+                        if (!(p instanceof BouncyPlatform) && !(p instanceof Button)) { //bouncy platform & button
+                            Utils.resolveCollision(e, p);
+                        }
+                        if (!(e instanceof ActionOnTouch) && p instanceof Button) {
                             Utils.resolveCollision(e, p);
                         }
                     }
@@ -705,8 +889,13 @@ public class Main {
             }
         }
         // Camera following p1
-        cameraX = player1.getX() - 300;
-        cameraY = player1.getY() + 800;
+        if (!NetworkManager.connected) {
+            cameraX = player1.getX() - 300;
+            cameraY = player1.getY() + 800;
+        } else {
+            cameraX = (NetworkManager.isHosting ? player1.getX() : player2.getX()) - 300;
+            cameraY = (NetworkManager.isHosting ? player1.getY() : player2.getY()) + 800;
+        }
         if (reset) {
             resetLevel();
         }
@@ -719,6 +908,9 @@ public class Main {
     private static void loop() {
         GL.createCapabilities();
         glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         // Set the clear color
         glClearColor(0.0f, 1.0f, 1.0f, 0.0f);
@@ -822,10 +1014,8 @@ public class Main {
                 glPopMatrix();
             } else {
                 for (Renderable pl : platforms) {
-                    if (pl.getTexture() != 0) { //TODO remove
-                        glColor4f(1, 1, 1, 1);
-                        glBindTexture(GL_TEXTURE_2D, pl.getTexture());
-                    }
+                    glColor4f(1, 1, 1, 1);
+                    glBindTexture(GL_TEXTURE_2D, pl.getTexture());
                     if (pl.visible) {
                         pl.render();
                     }
@@ -866,8 +1056,8 @@ public class Main {
     }
 
     private static void resetLevel() {
-        System.out.println("clearing out !");
         reset = false;
+        stopAllAudio();
         entities.clear();
         platforms.clear();
 
@@ -898,4 +1088,16 @@ public class Main {
         gd = gameData;
     }
 
+    public static void stopAllAudio() {
+        alSourceStop(biterWalkAudio); //TODO add sounds there too
+        alSourceStop(jumpAudio);
+    }
+
+    public static void stopAudio(int sourcePointer) {
+        alSourceStop(sourcePointer);
+    }
+
+    public static boolean isAudioPlaying(int sourcePointer) {
+        return alGetSourcei(sourcePointer, AL_SOURCE_STATE) == AL_PLAYING;
+    }
 }

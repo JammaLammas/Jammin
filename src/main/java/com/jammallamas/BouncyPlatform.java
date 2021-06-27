@@ -6,20 +6,27 @@ public class BouncyPlatform extends Platform implements ActionOnTouch {
 
     public BouncyPlatform() {
         super();
-        if (bounceTexture == 0) {
+        if (Utils.hasOGLContext()) {
             initTextures();
         }
     }
 
     @Override
     public void initTextures() {
-        super.initTextures(); //call needed for all platforms
-        try {
-            bounceTexture = Utils.loadTexture("spring.png");
-        } catch (Exception e) {
-            e.printStackTrace();
-            bounceTexture = 0;
+        if (bounceTexture == 0) {
+            super.initTextures(); //call needed for all platforms
+            try {
+                bounceTexture = Utils.loadTexture("spring.png");
+            } catch (Exception e) {
+                e.printStackTrace();
+                bounceTexture = 0;
+            }
         }
+    }
+
+    @Override
+    public int getTexture() {
+        return bounceTexture;
     }
 
     @Override
