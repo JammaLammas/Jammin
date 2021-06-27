@@ -5,21 +5,25 @@
 // Levels
 
 // Start Platform
-p:0:-630:100:900
+p:0:-630:100:1000
 
 // Buttons
 b:500:-300:50:50
-// Button activated bridge - used as a stair
-br:700:-530:200:200
+// Button activated bridge 1
+br:700:-530:150:150
+// Button activated bridge 2
+br:850:-530:150:150
+// Button activated bridge 3
+br:850:-380:150:150
 
 // Yeeting Platform
-p:900:-330:200:400
+p:1000:-280:200:400
 
 // End platform
-p:1600:-630:100:400
+p:1700:-630:100:400
 
 // Final door
-end:1750:-530:150:100
+end:1850:-530:150:100
 
 
 // Death planes:

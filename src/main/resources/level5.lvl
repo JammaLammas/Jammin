@@ -5,27 +5,31 @@
 // Levels
 
 // Start Platform
-p:0:-630:100:900
+p:0:-630:100:1000
 
 // Buttons
 b:500:-300:50:50
-// Button activated bridge - used as a stair
-br:700:-530:200:200
+// Button activated bridge 1
+br:700:-530:150:150
+// Button activated bridge 2
+br:850:-530:150:150
+// Button activated bridge 3
+br:850:-380:150:150
 
 // Yeeting Platform
-p:900:-330:200:400
+p:1000:-280:200:400
 
 // Enemy on yeeting platform
-bite:1100:-100:100:100
+bite:1200:-100:100:100
 
 // Smol platform
-p:1600:-430:30:100
+p:1700:-430:30:100
 
 // End platform
-p:1900:-630:100:400
+p:2000:-630:100:400
 
 // Final door
-end:2050:-530:150:100
+end:2150:-530:150:100
 
 
 // Death planes:
