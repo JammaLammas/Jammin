@@ -55,13 +55,18 @@ public class Button extends Renderable implements ActionOnTouch {
         return buttonTexture;
     }
 
+    private transient long cooldown = 0;
+
     @Override
     public boolean onHit(Entity e) {
-        if (e instanceof Projectile) {
+        //if (e instanceof Projectile) {
+        if (cooldown <= System.currentTimeMillis()) {
+            cooldown = System.currentTimeMillis() + 1000;
             for (ButtonLinkable act : action) {
                 act.onButton();
             }
         }
+        //}
         return false;
     }
 
