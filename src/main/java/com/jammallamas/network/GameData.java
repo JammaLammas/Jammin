@@ -6,6 +6,7 @@ import com.jammallamas.Renderable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public class GameData implements Serializable {
     private static final long serialVersionUID = 1773536857132043952L;
@@ -18,7 +19,8 @@ public class GameData implements Serializable {
     public boolean isPaused;
 
     public GameData(ArrayList<Entity> entities, ArrayList<Renderable> platforms, Player player1, Player player2, long grabTimeout, boolean isGrabbed, boolean isPaused) {
-        this.entities = entities;
+        //stream api magic, remove players from that list
+        this.entities = entities.stream().filter((e) -> !(e instanceof Player)).collect(Collectors.toCollection(ArrayList::new));
         this.platforms = platforms;
         this.player1 = player1;
         this.player2 = player2;

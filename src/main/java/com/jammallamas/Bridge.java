@@ -6,6 +6,7 @@ public class Bridge extends Platform implements ButtonLinkable {
     }
 
 	public Bridge(boolean isVisible, boolean isCollidable) {
+        super();
         visible = isVisible;
         collidable = isCollidable;
     }
