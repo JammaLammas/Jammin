@@ -541,6 +541,19 @@ public class Main {
                 } catch (NumberFormatException e) {
                     System.err.println("Bad number for line " + pl + "skipping");
                 }
+            } else if (coords.length == 5 && coords[0].equals("lazer")) {
+                Lazer p = new Lazer();
+                try {
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2]));
+                    p.setX(Double.parseDouble(coords[1]));
+                    p.setY(Double.parseDouble(coords[2])); // duplicated because lastx and lasty
+                    p.setHeight(Double.parseDouble(coords[3]));
+                    p.setWidth(Double.parseDouble(coords[4]));
+                    platforms.add(p);
+                } catch (NumberFormatException e) {
+                    System.err.println("Bad number for line " + pl + "skipping");
+                }
             } else {
                 //uh uh
                 System.err.println("this line " + pl + " is invalid ! skipping");
@@ -610,6 +623,7 @@ public class Main {
             }
             e.setOnGround(false);  // Default case, if onGround then will be set so below
             for (Renderable p : platforms) {
+                p.onFrame();
                 if (!p.collidable) {
                     continue;
                 }
@@ -719,6 +733,9 @@ public class Main {
     private static void loop() {
         GL.createCapabilities();
         glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         // Set the clear color
         glClearColor(0.0f, 1.0f, 1.0f, 0.0f);
@@ -822,10 +839,8 @@ public class Main {
                 glPopMatrix();
             } else {
                 for (Renderable pl : platforms) {
-                    if (pl.getTexture() != 0) { //TODO remove
                         glColor4f(1, 1, 1, 1);
                         glBindTexture(GL_TEXTURE_2D, pl.getTexture());
-                    }
                     if (pl.visible) {
                         pl.render();
                     }

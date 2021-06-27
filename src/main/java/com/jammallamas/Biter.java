@@ -3,6 +3,10 @@ package com.jammallamas;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Biter extends Entity implements ActionOnTouch {
+
+    private static final int FRAMES = 7;
+    private static int biterTexture = 0;
+
     private final double AGGRO_RANGE = 350;
     private final double MAX_RUN = 20;
     private final double MAX_WALK = 10;
@@ -44,8 +48,23 @@ public class Biter extends Entity implements ActionOnTouch {
         }
     }
 
+    /**
+     * Should always be an integer, ranging from 1 to FRAMES
+     */
+    private transient float currentFrame = 1;
+    private transient int frameCount = 0;
+    private transient double lastMul = 0;
+
+    public Biter() {
+        super();
+        if (biterTexture == 0) {
+            initTextures();
+        }
+    }
+
     @Override
     public void onFrame() {
+        frameCount++;
         this.setChase(Main.player1);
         if (!this.isChasing()) {
             this.setChase(Main.player2);
@@ -54,6 +73,36 @@ public class Biter extends Entity implements ActionOnTouch {
             this.setAccel(Main.player1);
         }
         this.setxVelocity(this.getAccel());
+        //update animation
+        if (getAccel() == 0 && frameCount % 6 == 0) {
+            currentFrame++;
+            if (currentFrame > FRAMES) {
+                currentFrame = 1;
+            }
+        } else if (Math.abs(getAccel()) == WALK_ACCEL && frameCount % 4 == 0) {
+            currentFrame++;
+            if (currentFrame > FRAMES) {
+                currentFrame = 1;
+            }
+        } else if (Math.abs(getAccel()) == CHASE_ACCEL && frameCount % 2 == 0) {
+            currentFrame++;
+            if (currentFrame > FRAMES) {
+                currentFrame = 1;
+            }
+        }
+    }
+
+    /**
+     * Give the magic number for the rotation of player1
+     *
+     * @return 1 if player is facing right, -1 if player is facing left
+     */
+    private double getMulRotation() {
+        double mul = Math.signum(this.getX() - this.getLastX());
+        if (mul != 0) {
+            lastMul = mul;
+        }
+        return lastMul;
     }
 
     @Override
@@ -64,13 +113,29 @@ public class Biter extends Entity implements ActionOnTouch {
         glScaled(-1, 1, 1);
         glBegin(GL_QUADS);
         glColor4f(1, 1, 1, 1);
-        glTexCoord2f(1, 1);
+        if (getMulRotation() != 1) {
+            glTexCoord2f(currentFrame / FRAMES, 1);
+        } else {
+            glTexCoord2f((currentFrame - 1) / FRAMES, 1);
+        }
         glVertex2d(0, 0);
-        glTexCoord2f(1, 0);
+        if (getMulRotation() != 1) {
+            glTexCoord2f(currentFrame / FRAMES, 0);
+        } else {
+            glTexCoord2f((currentFrame - 1) / FRAMES, 0);
+        }
         glVertex2d(0, getHeight());
-        glTexCoord2f(0, 0);
+        if (getMulRotation() != 1) {
+            glTexCoord2f((currentFrame - 1) / FRAMES, 0);
+        } else {
+            glTexCoord2f(currentFrame / FRAMES, 0);
+        }
         glVertex2d(getWidth(), getHeight());
-        glTexCoord2f(0, 1);
+        if (getMulRotation() != 1) {
+            glTexCoord2f((currentFrame - 1) / FRAMES, 1);
+        } else {
+            glTexCoord2f(currentFrame / FRAMES, 1);
+        }
         glVertex2d(getWidth(), 0);
         glEnd();
         glPopMatrix();
@@ -90,6 +155,21 @@ public class Biter extends Entity implements ActionOnTouch {
             Main.player2.setyVelocity(0);
         }
         return e instanceof Projectile; //if it's a projectile, kill the biter
+    }
+
+    @Override
+    public void initTextures() {
+        try {
+            biterTexture = Utils.loadTexture("biter.png");
+        } catch (Exception e) {
+            e.printStackTrace();
+            biterTexture = 0;
+        }
+    }
+
+    @Override
+    public int getTexture() {
+        return biterTexture;
     }
 
     @Override

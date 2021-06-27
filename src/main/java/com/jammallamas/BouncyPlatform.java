@@ -23,6 +23,11 @@ public class BouncyPlatform extends Platform implements ActionOnTouch {
     }
 
     @Override
+    public int getTexture() {
+        return bounceTexture;
+    }
+
+    @Override
     public boolean onHit(Entity e) {
         e.setyVelocity(-e.getyVelocity());
         e.setY(e.getY() + Math.signum(e.getyVelocity()));

@@ -95,7 +95,6 @@ public class Utils {
             if (buf == null) {
                 throw new Exception("Image file [" + fileName + "] not loaded: " + STBImage.stbi_failure_reason());
             }
-
             width = w.get();
             height = h.get();
         }
