@@ -38,7 +38,7 @@ public class Main {
     private static final double AIR_FRICTION = 0.00;
     private static final long GRAB_COOLDOWN = 200;
     private static final String[] levels = new String[]{
-		"/testLevel.lvl.gz",
+//		"/testLevel.lvl.gz",
 		"/level1.lvl.gz",
 		"/level2.lvl.gz",
 		"/level3.lvl.gz",
