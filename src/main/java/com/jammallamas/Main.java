@@ -82,6 +82,8 @@ public class Main {
         } catch (Throwable e) {
             e.printStackTrace();
         } finally {
+            NetworkManager.disconnect();
+
             ALC10.alcDestroyContext(context);
             ALC10.alcCloseDevice(device);
 
@@ -594,6 +596,8 @@ public class Main {
         if (gd != null) {
             cameraX = gd.player1.getX() - 300;
             cameraY = gd.player1.getY() + 800;
+            gd.entities.add(gd.player1);
+            gd.entities.add(gd.player2);
             entities = gd.entities;
             platforms = gd.platforms;
             player1 = gd.player1;
@@ -966,12 +970,7 @@ public class Main {
     }
 
     public static Renderable getPlatformAt(double x, double y) {
-        Renderable r = new Renderable() {
-            @Override
-            public void render() {
-                //noop
-            }
-        };
+        Renderable r = new Renderable();
         r.setX(x);
         r.setY(y);
         r.setHeight(1);

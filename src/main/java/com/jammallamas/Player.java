@@ -1,11 +1,13 @@
 package com.jammallamas;
 
-import java.io.Serializable;
-
 import static org.lwjgl.opengl.GL11.*;
 
-public class Player extends Entity implements Serializable {
-    private static final long serialVersionUID = 3143011099839440272L;
+public class Player extends Entity {
+
+    public Player() {
+        super();
+    }
+
     private byte walking = 0;
 
     @Override
@@ -27,6 +29,13 @@ public class Player extends Entity implements Serializable {
         glPopMatrix();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Player)) return false;
+        Player player = (Player) o;
+        return getWalking() == player.getWalking();
+    }
 
     public byte getWalking() {
         return this.walking;

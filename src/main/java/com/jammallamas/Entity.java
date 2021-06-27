@@ -1,9 +1,11 @@
 package com.jammallamas;
 
-import java.io.Serializable;
+public class Entity extends Renderable {
 
-public abstract class Entity extends Renderable implements Serializable {
-    private static final long serialVersionUID = 4621116915303694113L;
+    public Entity() {
+        super();
+    }
+
     private boolean onGround = false;
     private double yVelocity = 0;
     private double xVelocity = 0;
