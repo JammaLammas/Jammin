@@ -19,16 +19,16 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public final class NetworkManager {
+    private static final byte[] buf = new byte[4096];
     public static boolean connected = false;
     public static boolean isHosting = false;
-    private static final byte[] buf = new byte[4096];
-    private static InetAddress pAddress;
-    private static int pPort;
-    private static DatagramSocket s;
     public static Gson gson = new GsonBuilder()
             .registerTypeAdapter(Renderable.class, new JsonInheritanceDeserializer<Renderable>())
             .registerTypeAdapter(Entity.class, new JsonInheritanceDeserializer<Entity>())
             .create();
+    private static InetAddress pAddress;
+    private static int pPort;
+    private static DatagramSocket s;
 
     public static void openServer(int port) {
         isHosting = true;

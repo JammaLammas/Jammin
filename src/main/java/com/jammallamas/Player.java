@@ -6,6 +6,7 @@ public class Player extends Entity {
 
     private static int p1Texture = 0;
     private static int p2Texture = 0;
+    private byte walking = 0;
 
     public Player() {
         super();
@@ -13,8 +14,6 @@ public class Player extends Entity {
             initTextures();
         }
     }
-
-    private byte walking = 0;
 
     @Override
     public void render() {

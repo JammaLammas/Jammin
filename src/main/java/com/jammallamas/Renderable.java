@@ -18,6 +18,12 @@ public class Renderable {
     private double y;
     private double height;
     private double width;
+    @SerializedName("type")
+    private final String typeName;
+
+    public Renderable() {
+        typeName = getClass().getName();
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -47,13 +53,6 @@ public class Renderable {
      */
     public void onFrame() {
 
-    }
-
-    @SerializedName("type")
-    private String typeName;
-
-    public Renderable() {
-        typeName = getClass().getName();
     }
 
     public double getY() {

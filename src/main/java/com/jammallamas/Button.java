@@ -7,7 +7,9 @@ import static org.lwjgl.opengl.GL11.*;
 public class Button extends Renderable implements ActionOnTouch {
 
     private static int buttonTexture = 0;
-    private ArrayList<ButtonLinkable> action = new ArrayList<>();
+    private final ArrayList<ButtonLinkable> action = new ArrayList<>();
+    private transient long cooldown = 0;
+
 
     public Button() {
         super();
@@ -15,7 +17,6 @@ public class Button extends Renderable implements ActionOnTouch {
             initTextures();
         }
     }
-
 
     @Override
     public void render() {
@@ -54,8 +55,6 @@ public class Button extends Renderable implements ActionOnTouch {
     public int getTexture() {
         return buttonTexture;
     }
-
-    private transient long cooldown = 0;
 
     @Override
     public boolean onHit(Entity e) {

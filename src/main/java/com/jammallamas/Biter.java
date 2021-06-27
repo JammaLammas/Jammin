@@ -15,6 +15,19 @@ public class Biter extends Entity implements ActionOnTouch {
     private boolean isChasing = false;
     private double accel = WALK_ACCEL;
     private boolean dropsEdges = false;
+    /**
+     * Should always be an integer, ranging from 1 to FRAMES
+     */
+    private transient float currentFrame = 1;
+    private transient int frameCount = 0;
+    private transient double lastMul = 0;
+
+    public Biter() {
+        super();
+        if (Utils.hasOGLContext()) {
+            initTextures();
+        }
+    }
 
     private boolean checkForPlayer(Entity player) {
         return player.getX() + player.getWidth() >= this.getX() - this.AGGRO_RANGE
@@ -45,20 +58,6 @@ public class Biter extends Entity implements ActionOnTouch {
             if (!dropsEdges) {
                 this.accel = 0; //let's not jump off
             }
-        }
-    }
-
-    /**
-     * Should always be an integer, ranging from 1 to FRAMES
-     */
-    private transient float currentFrame = 1;
-    private transient int frameCount = 0;
-    private transient double lastMul = 0;
-
-    public Biter() {
-        super();
-        if (Utils.hasOGLContext()) {
-            initTextures();
         }
     }
 

@@ -41,15 +41,15 @@ public class Main {
     private static final double AIR_FRICTION = 0.00;
     private static final long GRAB_COOLDOWN = 200;
     private static final String[] levels = new String[]{
-		"/testLevel.lvl.gz",
-		"/level1.lvl.gz",
-		"/level2.lvl.gz",
-		"/level3.lvl.gz",
-		"/level4.lvl.gz",
-		"/level5.lvl.gz",
-		"/level6.lvl.gz",
-		"/level7.lvl.gz",
-		"/level8.lvl.gz",
+            "/testLevel.lvl.gz",
+            "/level1.lvl.gz",
+            "/level2.lvl.gz",
+            "/level3.lvl.gz",
+            "/level4.lvl.gz",
+            "/level5.lvl.gz",
+            "/level6.lvl.gz",
+            "/level7.lvl.gz",
+            "/level8.lvl.gz",
     };
     public static int currentLevel = 0;
     public static double cameraX = 0;
@@ -922,8 +922,8 @@ public class Main {
                 glPopMatrix();
             } else {
                 for (Renderable pl : platforms) {
-                        glColor4f(1, 1, 1, 1);
-                        glBindTexture(GL_TEXTURE_2D, pl.getTexture());
+                    glColor4f(1, 1, 1, 1);
+                    glBindTexture(GL_TEXTURE_2D, pl.getTexture());
                     if (pl.visible) {
                         pl.render();
                     }
