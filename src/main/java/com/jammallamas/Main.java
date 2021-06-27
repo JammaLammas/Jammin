@@ -574,8 +574,8 @@ public class Main {
             }
         }
         if (gd != null) {
-            cameraX = gd.player1.getX() - 300;
-            cameraY = gd.player1.getY() + 800;
+            cameraX = (NetworkManager.isHosting ? gd.player1.getX() : gd.player2.getX()) - 300;
+            cameraY = (NetworkManager.isHosting ? gd.player1.getY() : gd.player2.getY()) + 800;
             gd.entities.add(gd.player1);
             gd.entities.add(gd.player2);
             ArrayList<Entity> checked = (ArrayList<Entity>) entities.clone();
@@ -797,8 +797,13 @@ public class Main {
             }
         }
         // Camera following p1
-        cameraX = player1.getX() - 300;
-        cameraY = player1.getY() + 800;
+        if (!NetworkManager.connected) {
+            cameraX = player1.getX() - 300;
+            cameraY = player1.getY() + 800;
+        } else {
+            cameraX = (NetworkManager.isHosting ? player1.getX() : player2.getX()) - 300;
+            cameraY = (NetworkManager.isHosting ? player1.getY() : player2.getY()) + 800;
+        }
         if (reset) {
             resetLevel();
         }
