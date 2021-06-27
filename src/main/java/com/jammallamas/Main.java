@@ -6,15 +6,12 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.openal.*;
 import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL30;
-import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.libc.LibCStdlib;
 
 import javax.swing.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
@@ -56,7 +53,7 @@ public class Main {
     public static double cameraY = 800;
     public static ArrayList<Entity> entities = new ArrayList<>();
     public static ArrayList<Renderable> platforms = new ArrayList<>();
-    public static Renderable menu = new Platform();
+    public static Renderable menu = new Renderable();
     public static Player player1;
     public static Player player2;
     public static long grabTimeout = 0;
@@ -334,8 +331,8 @@ public class Main {
                     }
                 }
                 if (key == GLFW_KEY_C && action == GLFW_PRESS && !NetworkManager.connected) {
-                    String address = JOptionPane.showInputDialog(null, "Insert host's ip separated by a colon (ex : 127.0.0.1:25565)", "Connection", JOptionPane.INFORMATION_MESSAGE);
                     new Thread(() -> {
+                        String address = JOptionPane.showInputDialog(null, "Insert host's ip separated by a colon (ex : 127.0.0.1:25565)", "Connection", JOptionPane.INFORMATION_MESSAGE);
                         try {
                             NetworkManager.connectToServer(InetAddress.getByName(address.split(":")[0]), Integer.parseInt(address.split(":")[1]));
                         } catch (UnknownHostException e) {
@@ -346,8 +343,8 @@ public class Main {
                     }).start();
                 }
                 if (key == GLFW_KEY_H && action == GLFW_PRESS && !NetworkManager.connected) {
-                    String address = JOptionPane.showInputDialog(null, "Insert the port you want to host at", "Hosting", JOptionPane.INFORMATION_MESSAGE);
                     new Thread(() -> {
+                        String address = JOptionPane.showInputDialog(null, "Insert the port you want to host at", "Hosting", JOptionPane.INFORMATION_MESSAGE);
                         try {
                             NetworkManager.openServer(Integer.parseInt(address));
                         } catch (NumberFormatException e) {
@@ -390,47 +387,6 @@ public class Main {
 
         // Make the window visible
         glfwShowWindow(window);
-    }
-
-    private static int loadTexture(String fileName) throws Exception {
-        int width;
-        int height;
-        ByteBuffer buf;
-        // Load Texture file
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            IntBuffer w = stack.mallocInt(1);
-            IntBuffer h = stack.mallocInt(1);
-            IntBuffer channels = stack.mallocInt(1);
-
-            buf = STBImage.stbi_load(fileName, w, h, channels, 4);
-            if (buf == null) {
-                throw new Exception("Image file [" + fileName + "] not loaded: " + STBImage.stbi_failure_reason());
-            }
-
-            width = w.get();
-            height = h.get();
-        }
-
-        // Create a new OpenGL texture
-        int textureId = glGenTextures();
-        // Bind the texture
-        glBindTexture(GL_TEXTURE_2D, textureId);
-
-        // Tell OpenGL how to unpack the RGBA bytes. Each component is 1 byte size
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-        // Upload the texture data
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
-                GL_RGBA, GL_UNSIGNED_BYTE, buf);
-        // Generate Mip Map
-        GL30.glGenerateMipmap(GL_TEXTURE_2D);
-
-        STBImage.stbi_image_free(buf);
-
-        return textureId;
     }
 
     /**
@@ -496,7 +452,7 @@ public class Main {
                         continue;
                     }
                     platforms.add(p);
-                    lastButton.setAction(p);
+                    lastButton.addAction(p);
                 } catch (NumberFormatException e) {
                     System.err.println("Bad number for line " + pl + "skipping");
                 }
@@ -515,7 +471,7 @@ public class Main {
                         continue;
                     }
                     platforms.add(p);
-                    lastButton.setAction(p);
+                    lastButton.addAction(p);
                 } catch (NumberFormatException e) {
                     System.err.println("Bad number for line " + pl + "skipping");
                 }
@@ -645,17 +601,7 @@ public class Main {
                     player2.setY(player1.getY() + player1.getHeight() + 3); // 3 for spacing
                 }
             }
-            if (e instanceof Biter) {
-                Biter b = (Biter) e;
-                b.setChase(player1);
-                if (!b.isChasing()) {
-                    b.setChase(player2);
-                    b.setAccel(player2);
-                } else {
-                    b.setAccel(player1);
-                }
-                b.setxVelocity(b.getAccel());
-            }
+            e.onFrame();
         }
         // Entity-Platform collisions
         for (Entity e : entities) {
@@ -807,67 +753,20 @@ public class Main {
 
         int texture;
         try {
-            texture = loadTexture("Background.jpg");
+            texture = Utils.loadTexture("Background.jpg");
         } catch (Exception e) {
             e.printStackTrace();
             texture = 0;
         }
 
-        int buttonTexture;
-        try {
-            buttonTexture = loadTexture("button.png");
-        } catch (Exception e) {
-            e.printStackTrace();
-            buttonTexture = 0;
-        }
-
-        int doorTexture;
-        try {
-            doorTexture = loadTexture("door.png");
-        } catch (Exception e) {
-            e.printStackTrace();
-            doorTexture = 0;
-        }
-
         int menuTexture;
         try {
-            menuTexture = loadTexture("menu.png");
+            menuTexture = Utils.loadTexture("menu.png");
         } catch (Exception e) {
             e.printStackTrace();
             menuTexture = 0;
         }
 
-        int platformTexture;
-        try {
-            platformTexture = loadTexture("platform.png");
-        } catch (Exception e) {
-            e.printStackTrace();
-            platformTexture = 0;
-        }
-
-        int springTexture;
-        try {
-            springTexture = loadTexture("spring.png");
-        } catch (Exception e) {
-            e.printStackTrace();
-            springTexture = 0;
-        }
-
-        int p1Texture;
-        try {
-            p1Texture = loadTexture("p1.png");
-        } catch (Exception e) {
-            e.printStackTrace();
-            p1Texture = 0;
-        }
-
-        int p2Texture;
-        try {
-            p2Texture = loadTexture("p2.png");
-        } catch (Exception e) {
-            e.printStackTrace();
-            p2Texture = 0;
-        }
 
         playMusic("boop.ogg");
 
@@ -923,22 +822,9 @@ public class Main {
                 glPopMatrix();
             } else {
                 for (Renderable pl : platforms) {
-                    if (pl instanceof Button) {
+                    if (pl.getTexture() != 0) { //TODO remove
                         glColor4f(1, 1, 1, 1);
-                        glBindTexture(GL_TEXTURE_2D, buttonTexture);
-                    } else if (pl instanceof FinalDoor) {
-                        glColor4f(1, 1, 1, 1);
-                        glBindTexture(GL_TEXTURE_2D, doorTexture);
-                    } else if (pl instanceof BouncyPlatform) {
-                        glColor4f(1, 1, 1, 1);
-                        glBindTexture(GL_TEXTURE_2D, springTexture);
-                    } else if (pl instanceof Platform) {
-                        //place anything based on platforms before this if
-                        glColor4f(1, 1, 1, 1);
-                        glBindTexture(GL_TEXTURE_2D, platformTexture);
-                    } else {
-                        glColor4f(0, 0, 0, 0);
-                        glBindTexture(GL_TEXTURE_2D, 0);
+                        glBindTexture(GL_TEXTURE_2D, pl.getTexture());
                     }
                     if (pl.visible) {
                         pl.render();
@@ -948,13 +834,7 @@ public class Main {
                 glColor4f(1, 1, 1, 1);
                 for (Entity e : entities) {
                     if (e.visible) {
-                        if (e == player2) {
-                            glBindTexture(GL_TEXTURE_2D, p2Texture);
-                        } else if (e == player1) {
-                            glBindTexture(GL_TEXTURE_2D, p1Texture);
-                        } else {
-                            glBindTexture(GL_TEXTURE_2D, 0);
-                        }
+                        glBindTexture(GL_TEXTURE_2D, e.getTexture());
                         e.render();
                     }
                 }

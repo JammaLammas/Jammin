@@ -4,8 +4,14 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class Player extends Entity {
 
+    private static int p1Texture = 0;
+    private static int p2Texture = 0;
+
     public Player() {
         super();
+        if (p1Texture == 0 || p2Texture == 0) {
+            initTextures();
+        }
     }
 
     private byte walking = 0;
@@ -45,4 +51,29 @@ public class Player extends Entity {
         this.walking = walking;
     }
 
+    @Override
+    public int getTexture() {
+        if (this == Main.player1) {
+            return p1Texture;
+        } else {
+            return p2Texture;
+        }
+    }
+
+    @Override
+    public void initTextures() {
+        try {
+            p1Texture = Utils.loadTexture("p1.png");
+        } catch (Exception e) {
+            e.printStackTrace();
+            p1Texture = 0;
+        }
+
+        try {
+            p2Texture = Utils.loadTexture("p2.png");
+        } catch (Exception e) {
+            e.printStackTrace();
+            p2Texture = 0;
+        }
+    }
 }

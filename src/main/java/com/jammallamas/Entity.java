@@ -42,4 +42,5 @@ public class Entity extends Renderable {
     public void setxVelocity(double xVelocity) {
         this.xVelocity = xVelocity;
     }
+
 }

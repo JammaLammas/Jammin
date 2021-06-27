@@ -45,6 +45,18 @@ public class Biter extends Entity implements ActionOnTouch {
     }
 
     @Override
+    public void onFrame() {
+        this.setChase(Main.player1);
+        if (!this.isChasing()) {
+            this.setChase(Main.player2);
+            this.setAccel(Main.player2);
+        } else {
+            this.setAccel(Main.player1);
+        }
+        this.setxVelocity(this.getAccel());
+    }
+
+    @Override
     public void render() {
         glPushMatrix();
         glTranslated(getX() + getWidth(), getY(), 0);
@@ -69,7 +81,6 @@ public class Biter extends Entity implements ActionOnTouch {
         if (e == Main.player1) {
             Main.queueReset(); //reset ?
         } else if (e == Main.player2) {
-            //TODO maybe change this ?
             //reset to player1
             Main.isGrabbed = true;
             //teleport second on top

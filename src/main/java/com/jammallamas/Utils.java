@@ -1,9 +1,17 @@
 package com.jammallamas;
 
+import org.lwjgl.opengl.GL30;
+import org.lwjgl.stb.STBImage;
+import org.lwjgl.system.MemoryStack;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.Scanner;
 import java.util.zip.GZIPInputStream;
+
+import static org.lwjgl.opengl.GL11.*;
 
 public class Utils {
 
@@ -71,5 +79,46 @@ public class Utils {
             e.printStackTrace();
         }
         return result;
+    }
+
+    public static int loadTexture(String fileName) throws Exception {
+        int width;
+        int height;
+        ByteBuffer buf;
+        // Load Texture file
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            IntBuffer w = stack.mallocInt(1);
+            IntBuffer h = stack.mallocInt(1);
+            IntBuffer channels = stack.mallocInt(1);
+
+            buf = STBImage.stbi_load(fileName, w, h, channels, 4);
+            if (buf == null) {
+                throw new Exception("Image file [" + fileName + "] not loaded: " + STBImage.stbi_failure_reason());
+            }
+
+            width = w.get();
+            height = h.get();
+        }
+
+        // Create a new OpenGL texture
+        int textureId = glGenTextures();
+        // Bind the texture
+        glBindTexture(GL_TEXTURE_2D, textureId);
+
+        // Tell OpenGL how to unpack the RGBA bytes. Each component is 1 byte size
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        // Upload the texture data
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
+                GL_RGBA, GL_UNSIGNED_BYTE, buf);
+        // Generate Mip Map
+        GL30.glGenerateMipmap(GL_TEXTURE_2D);
+
+        STBImage.stbi_image_free(buf);
+
+        return textureId;
     }
 }

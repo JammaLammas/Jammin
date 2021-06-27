@@ -1,10 +1,20 @@
 package com.jammallamas;
 
+import java.util.ArrayList;
+
 import static org.lwjgl.opengl.GL11.*;
 
 public class Button extends Renderable implements ActionOnTouch {
 
-    private ButtonLinkable action = null;
+    private static int buttonTexture = 0;
+    private ArrayList<ButtonLinkable> action = new ArrayList<>();
+
+    public Button() {
+        super();
+        if (buttonTexture == 0) {
+            initTextures();
+        }
+    }
 
 
     @Override
@@ -27,11 +37,28 @@ public class Button extends Renderable implements ActionOnTouch {
         glPopMatrix();
     }
 
+    @Override
+    public void initTextures() {
+        super.initTextures(); //call needed for all platforms
+        try {
+            buttonTexture = Utils.loadTexture("button.png");
+        } catch (Exception e) {
+            e.printStackTrace();
+            buttonTexture = 0;
+        }
+    }
+
+    @Override
+    public int getTexture() {
+        return buttonTexture;
+    }
 
     @Override
     public boolean onHit(Entity e) {
-        if (e instanceof Projectile && action != null) {
-            action.onButton();
+        if (e instanceof Projectile) {
+            for (ButtonLinkable act : action) {
+                act.onButton();
+            }
         }
         return false;
     }
@@ -41,7 +68,7 @@ public class Button extends Renderable implements ActionOnTouch {
         return false;
     }
 
-    public void setAction(ButtonLinkable action) {
-        this.action = action;
+    public void addAction(ButtonLinkable action) {
+        this.action.add(action);
     }
 }

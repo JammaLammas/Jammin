@@ -4,6 +4,15 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class FinalDoor extends Renderable implements ActionOnTouch {
 
+    private static int doorTexture = 0;
+
+    public FinalDoor() {
+        super();
+        if (doorTexture == 0) {
+            initTextures();
+        }
+    }
+
     @Override
     public void render() {
         glPushMatrix();
@@ -22,6 +31,22 @@ public class FinalDoor extends Renderable implements ActionOnTouch {
         glVertex2d(getWidth(), 0);
         glEnd();
         glPopMatrix();
+    }
+
+    @Override
+    public void initTextures() {
+        super.initTextures(); //call needed for all platforms
+        try {
+            doorTexture = Utils.loadTexture("door.png");
+        } catch (Exception e) {
+            e.printStackTrace();
+            doorTexture = 0;
+        }
+    }
+
+    @Override
+    public int getTexture() {
+        return doorTexture;
     }
 
     @Override

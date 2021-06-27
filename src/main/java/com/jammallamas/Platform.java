@@ -4,6 +4,15 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class Platform extends Renderable {
 
+    private static int staticTexture = 0;
+
+    public Platform() {
+        super();
+        if (staticTexture == 0) {
+            initTextures();
+        }
+    }
+
     @Override
     public void render() {
         glPushMatrix();
@@ -23,4 +32,19 @@ public class Platform extends Renderable {
         glPopMatrix();
     }
 
+
+    @Override
+    public void initTextures() {
+        try {
+            staticTexture = Utils.loadTexture("platform.png");
+        } catch (Exception e) {
+            e.printStackTrace();
+            staticTexture = 0;
+        }
+    }
+
+    @Override
+    public int getTexture() {
+        return staticTexture;
+    }
 }

@@ -14,6 +14,21 @@ public class Renderable {
     private double height;
     private double width;
 
+    public void initTextures() {
+        //nothing by default
+    }
+
+    public int getTexture() {
+        return 0;
+    }
+
+    /**
+     * This is ran every frame, to be used for animation
+     */
+    public void onFrame() {
+
+    }
+
     @SerializedName("type")
     private String typeName;
 

@@ -1,6 +1,27 @@
 package com.jammallamas;
 
 public class BouncyPlatform extends Platform implements ActionOnTouch {
+
+    private static int bounceTexture = 0;
+
+    public BouncyPlatform() {
+        super();
+        if (bounceTexture == 0) {
+            initTextures();
+        }
+    }
+
+    @Override
+    public void initTextures() {
+        super.initTextures(); //call needed for all platforms
+        try {
+            bounceTexture = Utils.loadTexture("spring.png");
+        } catch (Exception e) {
+            e.printStackTrace();
+            bounceTexture = 0;
+        }
+    }
+
     @Override
     public boolean onHit(Entity e) {
         e.setyVelocity(-e.getyVelocity());
