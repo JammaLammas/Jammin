@@ -179,7 +179,12 @@ public class Biter extends Entity implements ActionOnTouch {
             Main.player2.setxVelocity(0);
             Main.player2.setyVelocity(0);
         }
-        return e instanceof Projectile; //if it's a projectile, kill the biter
+        if (e instanceof Projectile) {
+            //if it's a projectile, kill the biter
+            Main.stopAudio(Main.biterWalkAudio);
+            return true;
+        }
+        return false;
     }
 
     @Override

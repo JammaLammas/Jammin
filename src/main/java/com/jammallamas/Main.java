@@ -10,6 +10,7 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.libc.LibCStdlib;
 
 import javax.swing.*;
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.InetAddress;
@@ -43,14 +44,15 @@ public class Main {
     private static final long GRAB_COOLDOWN = 200;
     private static final String[] levels = new String[]{
 //		"/testLevel.lvl.gz",
-		"/level1.lvl.gz",
-		"/level2.lvl.gz",
-		"/level3.lvl.gz",
-		"/level4.lvl.gz",
-		"/level5.lvl.gz",
-		"/level6.lvl.gz",
-		"/level7.lvl.gz",
-		"/level8.lvl.gz",
+            "/level1.lvl.gz",
+            "/level2.lvl.gz",
+            "/level3.lvl.gz",
+            "/level4.lvl.gz",
+            "/level5.lvl.gz",
+            "/level6.lvl.gz",
+            "/level7.lvl.gz",
+            "/level8.lvl.gz",
+            "/level9.lvl.gz",
     };
     public static int currentLevel = 0;
     public static double cameraX = 0;
@@ -266,6 +268,13 @@ public class Main {
     }
 
     private static void init() {
+        //test for a file, anti-dumb
+        if (!new File("biter_walk.ogg").exists()) {
+            JOptionPane.showMessageDialog(null, "ERROR ! please unzip ALL files from the zip !", "Couldn't load files !", JOptionPane.ERROR_MESSAGE);
+            System.exit(1);
+            return;
+        }
+
         // Setup an error callback. The default implementation
         // will print the error message in System.err.
         GLFWErrorCallback.createPrint(System.err).set();
